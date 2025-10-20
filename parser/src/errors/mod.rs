@@ -8,4 +8,18 @@ pub enum ParserError {
     Io(String),
     #[error("Input format error: {0}")]
     InvalidInput(String),
+    #[error("General error: {0}")]
+    GeneralError(String),
+}
+
+impl From<std::io::Error> for ParserError {
+    fn from(error: std::io::Error) -> Self {
+        ParserError::Io(error.to_string())
+    }
+}
+
+impl From<std::fmt::Error> for ParserError {
+    fn from(error: std::fmt::Error) -> Self {
+        ParserError::Io(error.to_string())
+    }
 }

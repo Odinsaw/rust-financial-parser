@@ -1,11 +1,11 @@
 use crate::errors::ParserError;
-use crate::traits::{FinancialDataRead /*FinancialDataWrite*/};
+use crate::traits::{FinancialDataRead, FinancialDataWrite};
 
 use chrono::NaiveDate;
 use chrono::{DateTime, Datelike, Utc};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::Write};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Mt940 {
@@ -40,6 +40,17 @@ impl BasicHeaderBlock {
             session_number: data[15..19].to_string(),
             sequence_number: data[19..25].to_string(),
         })
+    }
+
+    pub fn to_string(&self) -> String {
+        format!(
+            "{}{}{}{}{}",
+            self.application_identifier,
+            self.service_identifier,
+            self.lt_identifier,
+            self.session_number,
+            self.sequence_number
+        )
     }
 }
 
@@ -324,6 +335,109 @@ fn split_to_blocks(data: &str) -> Vec<Option<String>> {
     result
 }
 
+impl Mt940Statement {
+    pub fn to_string(&self) -> Result<String, ParserError> {
+        let mut result = String::new();
+
+        if let Some(ref reference) = self.reference {
+            writeln!(result, ":20:{}\r", reference)?;
+        }
+        if let Some(ref account) = self.account {
+            writeln!(result, ":25:{}\r", account)?;
+        }
+        if let Some(ref stmt_num) = self.statement_number {
+            writeln!(result, ":28C:{}\r", stmt_num)?;
+        }
+        if let Some(ref ob) = self.opening_balance {
+            writeln!(result, ":60F:{}\r", ob.to_string())?;
+        }
+
+        for tx in &self.transactions {
+            writeln!(result, ":61:{}\r", tx.to_string())?;
+            if let Some(ref info) = tx.info_to_account_owner {
+                writeln!(result, ":86:{}\r", info)?;
+            }
+        }
+
+        if let Some(ref cb) = self.closing_balance {
+            writeln!(result, ":62F:{}\r", cb.to_string())?;
+        }
+
+        for (tag, values) in &self.other {
+            for v in values {
+                writeln!(result, ":{}:{}\r", tag, v)?;
+            }
+        }
+
+        Ok(result)
+    }
+}
+
+impl Balance {
+    pub fn to_string(&self) -> String {
+        let date = self.date.format("%y%m%d").to_string();
+
+        let amount = format!("{:.2}", self.amount).replace('.', ",");
+
+        let currency = self.currency.clone().unwrap_or_else(|| "EUR".to_string());
+        format!("{}{}{}{}", self.sign, date, currency, amount)
+    }
+}
+
+impl Transaction {
+    pub fn to_string(&self) -> String {
+        let vd = self.value_date.format("%y%m%d").to_string();
+        let ed = self
+            .entry_date
+            .map(|d| d.format("%m%d").to_string())
+            .unwrap_or_default();
+        let dc = &self.dc_mark;
+        let funds = self.funds_code.clone().unwrap_or_default();
+
+        let amt = format!("{:.2}", self.amount).replace('.', ",");
+
+        let tti = self.transaction_type_id.clone().unwrap_or_default();
+        let supp = self.supplementary.clone().unwrap_or_default();
+
+        let ref_part = if let Some(ref r) = self.reference {
+            format!("//{}", r)
+        } else {
+            String::new()
+        };
+
+        format!(
+            "{}{}{}{}{}{}{}{}",
+            vd, ed, dc, funds, amt, tti, ref_part, supp
+        )
+    }
+}
+
+impl Mt940 {
+    pub fn to_string(&self) -> Result<String, ParserError> {
+        let mut msg = String::new();
+
+        let _ = write!(
+            msg,
+            "{{1:{}}}{{2:{}}}\r\n",
+            self.basic_header.to_string(),
+            self.application_header
+        )?;
+
+        if let Some(ref uh) = self.user_header {
+            let _ = write!(msg, "{{3:{}}}\r\n", uh)?;
+        }
+
+        let _ = write!(msg, "{{4:\r\n{}", self.statement.to_string()?)?;
+        let _ = write!(msg, "-}}")?;
+
+        if let Some(ref footer) = self.footer {
+            let _ = write!(msg, "\r\n{{5:{}}}", footer)?;
+        }
+
+        Ok(msg)
+    }
+}
+
 // TODO remove clone()
 impl FinancialDataRead for Mt940 {
     fn from_read<R: std::io::Read>(reader: R) -> Result<Self, ParserError> {
@@ -356,18 +470,13 @@ impl FinancialDataRead for Mt940 {
     }
 }
 
-// TODO
-// impl FinancialDataWrite for Mt940Statement {
-//     fn write_to<W: std::io::Write>(&self, writer: W) -> Result<()> {
-//         let data = Mt940Parser::serialize(self)?;
-//         let mut buffered = std::io::BufWriter::new(writer);
-//         buffered
-//             .write_all(data.as_bytes())
-//             .map_err(crate::error::ParserError::Io)?;
-//         buffered.flush().map_err(crate::error::ParserError::Io)?;
-//         Ok(())
-//     }
-// }
+impl FinancialDataWrite for Mt940 {
+    fn write_to<W: std::io::Write>(&self, writer: W) -> Result<(), ParserError> {
+        let data = Mt940::to_string(self)?;
+        Self::write_string(writer, &data)?;
+        Ok(())
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -487,5 +596,26 @@ mod tests {
         };
 
         assert_eq!(target, mt940_valid1);
+    }
+
+    use std::io::Write;
+
+    #[test]
+    fn test_read_write() {
+        // file paths: new file that will be created and valid mt940 file to compare
+        let new_file_path = Path::new(r"test_data\test_write.mt940");
+        let target_file_path = Path::new(r"test_data\valid_simplified_fields.mt940");
+        // files
+        let new_file = File::create(new_file_path).unwrap();
+        let target_file = File::open(target_file_path).unwrap();
+        // load valid mt940 file to struct (read tests suggest this operation is correct)
+        // then serialize and write to new file
+        let mt940_valid = Mt940::from_read(target_file).unwrap();
+        let _ = mt940_valid.write_to(new_file).unwrap();
+        // load new file and check that deserialization is correct
+        let new_file = File::open(new_file_path).unwrap();
+        let read_from_new_file = Mt940::from_read(new_file).unwrap();
+        std::fs::remove_file(new_file_path).unwrap();
+        assert_eq!(read_from_new_file, mt940_valid);
     }
 }

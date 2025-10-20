@@ -12,16 +12,13 @@ pub trait FinancialDataRead: Sized {
     }
 }
 
-// TODO
-// pub trait FinancialDataWrite {
-//     fn write_to<W: std::io::Write>(&self, writer: W) -> Result<(), ParseError>;
+pub trait FinancialDataWrite {
+    fn write_to<W: std::io::Write>(&self, writer: W) -> Result<(), ParserError>;
 
-//     fn write_string<W: std::io::Write>(writer: W, data: &str) -> Result<()> {
-//         let mut buffered = std::io::BufWriter::new(writer);
-//         buffered
-//             .write_all(data.as_bytes())
-//             .map_err(crate::errors::ParserError::Io("Failed to write buffer data"))?;
-//         buffered.flush().map_err(crate::error::ParserError::Io("Failed to write output data"))?;
-//         Ok(())
-//     }
-// }
+    fn write_string<W: std::io::Write>(writer: W, data: &str) -> Result<(), ParserError> {
+        let mut buffered = std::io::BufWriter::new(writer);
+        buffered.write_all(data.as_bytes())?;
+        buffered.flush()?;
+        Ok(())
+    }
+}
