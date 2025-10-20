@@ -1,8 +1,7 @@
 use crate::errors::ParserError;
 use crate::traits::{FinancialDataRead, FinancialDataWrite};
 
-use chrono::NaiveDate;
-use chrono::{DateTime, Datelike, Utc};
+use chrono::{Datelike, NaiveDate};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, fmt::Write};
@@ -109,7 +108,7 @@ fn parse_2digit_year(yy: u32) -> i32 {
     }
 }
 
-fn parse_date_yyMMdd(s: &str) -> Result<NaiveDate, ParserError> {
+fn parse_date_yy_mmdd(s: &str) -> Result<NaiveDate, ParserError> {
     if s.len() != 6 {
         return Err(ParserError::Mt940(format!("expected YYMMDD, got '{}'", s)));
     }
@@ -186,7 +185,7 @@ pub fn parse_mt940(input: &str) -> Result<Mt940Statement, ParserError> {
                         .unwrap();
                 if let Some(c) = re.captures(&content) {
                     let sign = c.name("sign").unwrap().as_str().chars().next().unwrap();
-                    let date = parse_date_yyMMdd(c.name("date").unwrap().as_str())?;
+                    let date = parse_date_yy_mmdd(c.name("date").unwrap().as_str())?;
                     let currency = c.name("cur").map(|m| m.as_str().to_string());
                     let amount = parse_amount(c.name("amt").unwrap().as_str())?;
                     stmt.opening_balance = Some(Balance {
@@ -206,7 +205,7 @@ pub fn parse_mt940(input: &str) -> Result<Mt940Statement, ParserError> {
             "61" => {
                 let raw = content.clone();
                 if let Some(c) = re_61.captures(&content.replace("\n", "")) {
-                    let valdate = parse_date_yyMMdd(c.name("valdate").unwrap().as_str())?;
+                    let valdate = parse_date_yy_mmdd(c.name("valdate").unwrap().as_str())?;
                     let entry = c.name("entry").map(|m| m.as_str());
                     let entry_date = if let Some(e) = entry {
                         if e.len() == 4 {
@@ -292,7 +291,7 @@ pub fn parse_mt940(input: &str) -> Result<Mt940Statement, ParserError> {
                         .unwrap();
                 if let Some(c) = re.captures(&content) {
                     let sign = c.name("sign").unwrap().as_str().chars().next().unwrap();
-                    let date = parse_date_yyMMdd(c.name("date").unwrap().as_str())?;
+                    let date = parse_date_yy_mmdd(c.name("date").unwrap().as_str())?;
                     let currency = c.name("cur").map(|m| m.as_str().to_string());
                     let amount = parse_amount(c.name("amt").unwrap().as_str())?;
                     stmt.closing_balance = Some(Balance {
@@ -597,8 +596,6 @@ mod tests {
 
         assert_eq!(target, mt940_valid1);
     }
-
-    use std::io::Write;
 
     #[test]
     fn test_read_write() {
