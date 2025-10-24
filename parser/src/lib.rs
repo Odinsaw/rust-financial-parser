@@ -3,5 +3,5 @@ pub mod formats;
 pub mod traits;
 
 pub use errors::ParserError;
-pub use formats::mt940::Mt940Statement;
+pub use formats::mt940::Mt940;
 pub use traits::{FinancialDataRead, FinancialDataWrite};
