@@ -1,38 +1,312 @@
-<Stmt>
-<Acct>
-<Id>
-<IBAN>RO49AAAA1B31007593840000</IBAN>
-</Id>
-</Acct>
-<Ntry>
-<Amt Ccy="RON">1000.00</Amt>
-<CdtDbtInd>DBIT</CdtDbtInd>
-<BookgDt><Dt>2024-07-03</Dt></BookgDt>
-<ValDt><Dt>2024-07-03</Dt></ValDt>
-<NtryDtls>
-<TxDtls>
-<Refs>
-<InstrId>TRXREF12345</InstrId>
-<EndToEndId>INV123456</EndToEndId>
-</Refs>
-<AmtDtls>
-<TxAmt>
-<Amt Ccy="RON">1000.00</Amt>
-</TxAmt>
-</AmtDtls>
-<RltdPties>
-<Dbtr>
-<Nm>SC COMPANY SRL</Nm>
-</Dbtr>
-</RltdPties>
-<RmtInf>
-<Strd>
-<CdtrRefInf>
-<Ref>INV123456</Ref>
-</CdtrRefInf>
-</Strd>
-</RmtInf>
-</TxDtls>
-</NtryDtls>
-</Ntry>
-</Stmt>
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.053.001.02" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <BkToCstmrStmt>
+    <!-- Идентификация группы сообщений -->
+    <GrpHdr>
+      <MsgId>STMT-20251024-001</MsgId>
+      <CreDtTm>2025-10-24T10:30:00</CreDtTm>
+      <MsgPgntn>
+        <PgNb>1</PgNb>
+        <LastPgInd>true</LastPgInd>
+      </MsgPgntn>
+    </GrpHdr>
+    
+    <!-- Выписка по счету -->
+    <Stmt>
+      <Id>STMT-123456789</Id>
+      <ElctrncSeqNb>1</ElctrncSeqNb>
+      <LglSeqNb>1</LglSeqNb>
+      <CreDtTm>2025-10-24T10:30:00</CreDtTm>
+      <FrToDt>
+        <FrDtTm>2025-10-23T00:00:00</FrDtTm>
+        <ToDtTm>2025-10-23T23:59:59</ToDtTm>
+      </FrToDt>
+      
+      <!-- Информация о счете -->
+      <Acct>
+        <Id>
+          <IBAN>NL91ABNA0417164300</IBAN>
+        </Id>
+        <Tp>
+          <Cd>CACC</Cd>
+        </Tp>
+        <Ccy>EUR</Ccy>
+        <Nm>Основной счет компании</Nm>
+        <Ownr>
+          <Nm>Example B.V.</Nm>
+          <PstlAdr>
+            <StrtNm>Hoofdstraat</StrtNm>
+            <BldgNb>123</BldgNb>
+            <PstCd>1234AB</PstCd>
+            <TwnNm>Amsterdam</TwnNm>
+            <Ctry>NL</Ctry>
+          </PstlAdr>
+          <Id>
+            <OrgId>
+              <Othr>
+                <Id>12345678</Id>
+                <SchmeNm>
+                  <Cd>COID</Cd>
+                </SchmeNm>
+              </Othr>
+            </OrgId>
+          </Id>
+        </Ownr>
+        <Svcr>
+          <FinInstnId>
+            <BIC>ABNANL2A</BIC>
+            <Nm>ABN AMRO Bank N.V.</Nm>
+          </FinInstnId>
+        </Svcr>
+      </Acct>
+      
+      <!-- Баланс на начало периода -->
+      <Bal>
+        <Tp>
+          <CdOrPrtry>
+            <Cd>OPBD</Cd>
+          </CdOrPrtry>
+        </Tp>
+        <Amt Ccy="EUR">10000.00</Amt>
+        <CdtDbtInd>CRDT</CdtDbtInd>
+        <Dt>
+          <Dt>2025-10-23</Dt>
+        </Dt>
+      </Bal>
+      
+      <!-- Баланс на конец периода -->
+      <Bal>
+        <Tp>
+          <CdOrPrtry>
+            <Cd>CLBD</Cd>
+          </CdOrPrtry>
+        </Tp>
+        <Amt Ccy="EUR">12500.50</Amt>
+        <CdtDbtInd>CRDT</CdtDbtInd>
+        <Dt>
+          <Dt>2025-10-23</Dt>
+        </Dt>
+      </Bal>
+      
+      <!-- Транзакция 1: Входящий платеж -->
+      <Ntry>
+        <Amt Ccy="EUR">3000.00</Amt>
+        <CdtDbtInd>CRDT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2025-10-23</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2025-10-23</Dt>
+        </ValDt>
+        <AcctSvcrRef>REF-20251023-001</AcctSvcrRef>
+        <BkTxCd>
+          <Domn>
+            <Cd>PMNT</Cd>
+            <Fmly>
+              <Cd>RCDT</Cd>
+              <SubFmlyCd>ESCT</SubFmlyCd>
+            </Fmly>
+          </Domn>
+          <Prtry>
+            <Cd>TRANSFER</Cd>
+            <Issr>BankCode</Issr>
+          </Prtry>
+        </BkTxCd>
+        
+        <!-- Детали транзакции -->
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <MsgId>MSG-20251023-001</MsgId>
+              <AcctSvcrRef>REF-20251023-001</AcctSvcrRef>
+              <PmtInfId>PMTINF-001</PmtInfId>
+              <InstrId>INSTR-001</InstrId>
+              <EndToEndId>E2E-20251023-001</EndToEndId>
+              <TxId>TXN-20251023-001</TxId>
+              <MndtId>MNDT-001</MndtId>
+            </Refs>
+            <Amt Ccy="EUR">3000.00</Amt>
+            <CdtDbtInd>CRDT</CdtDbtInd>
+            
+            <!-- Информация о плательщике -->
+            <RltdPties>
+              <Dbtr>
+                <Nm>Client Company Ltd</Nm>
+                <PstlAdr>
+                  <StrtNm>Business Street</StrtNm>
+                  <BldgNb>456</BldgNb>
+                  <PstCd>5678CD</PstCd>
+                  <TwnNm>Rotterdam</TwnNm>
+                  <Ctry>NL</Ctry>
+                </PstlAdr>
+              </Dbtr>
+              <DbtrAcct>
+                <Id>
+                  <IBAN>NL20INGB0001234567</IBAN>
+                </Id>
+              </DbtrAcct>
+              <Cdtr>
+                <Nm>Example B.V.</Nm>
+              </Cdtr>
+              <CdtrAcct>
+                <Id>
+                  <IBAN>NL91ABNA0417164300</IBAN>
+                </Id>
+              </CdtrAcct>
+            </RltdPties>
+            
+            <!-- Информация о банках -->
+            <RltdAgts>
+              <DbtrAgt>
+                <FinInstnId>
+                  <BIC>INGBNL2A</BIC>
+                  <Nm>ING Bank N.V.</Nm>
+                </FinInstnId>
+              </DbtrAgt>
+              <CdtrAgt>
+                <FinInstnId>
+                  <BIC>ABNANL2A</BIC>
+                  <Nm>ABN AMRO Bank N.V.</Nm>
+                </FinInstnId>
+              </CdtrAgt>
+            </RltdAgts>
+            
+            <!-- Назначение платежа -->
+            <RmtInf>
+              <Ustrd>Payment for invoice INV-2025-001</Ustrd>
+              <Strd>
+                <RfrdDocInf>
+                  <Tp>
+                    <CdOrPrtry>
+                      <Cd>CINV</Cd>
+                    </CdOrPrtry>
+                  </Tp>
+                  <Nb>INV-2025-001</Nb>
+                  <RltdDt>2025-10-15</RltdDt>
+                </RfrdDocInf>
+              </Strd>
+            </RmtInf>
+            
+            <!-- Дополнительная информация -->
+            <RltdDts>
+              <AccptncDtTm>2025-10-23T09:15:30</AccptncDtTm>
+            </RltdDts>
+            
+            <AddtlTxInf>Additional payment information</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      
+      <!-- Транзакция 2: Исходящий платеж -->
+      <Ntry>
+        <Amt Ccy="EUR">499.50</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2025-10-23</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2025-10-23</Dt>
+        </ValDt>
+        <AcctSvcrRef>REF-20251023-002</AcctSvcrRef>
+        <BkTxCd>
+          <Domn>
+            <Cd>PMNT</Cd>
+            <Fmly>
+              <Cd>ICDT</Cd>
+              <SubFmlyCd>ESCT</SubFmlyCd>
+            </Fmly>
+          </Domn>
+        </BkTxCd>
+        
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>E2E-20251023-002</EndToEndId>
+              <TxId>TXN-20251023-002</TxId>
+            </Refs>
+            <Amt Ccy="EUR">499.50</Amt>
+            <CdtDbtInd>DBIT</CdtDbtInd>
+            
+            <RltdPties>
+              <Dbtr>
+                <Nm>Example B.V.</Nm>
+              </Dbtr>
+              <DbtrAcct>
+                <Id>
+                  <IBAN>NL91ABNA0417164300</IBAN>
+                </Id>
+              </DbtrAcct>
+              <Cdtr>
+                <Nm>Supplier Company B.V.</Nm>
+              </Cdtr>
+              <CdtrAcct>
+                <Id>
+                  <IBAN>NL45RABO0123456789</IBAN>
+                </Id>
+              </CdtrAcct>
+            </RltdPties>
+            
+            <RmtInf>
+              <Ustrd>Payment for services rendered</Ustrd>
+            </RmtInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      
+      <!-- Комиссия банка -->
+      <Ntry>
+        <Amt Ccy="EUR">0.50</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2025-10-23</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2025-10-23</Dt>
+        </ValDt>
+        <AcctSvcrRef>REF-20251023-003</AcctSvcrRef>
+        <BkTxCd>
+          <Domn>
+            <Cd>CMDT</Cd>
+            <Fmly>
+              <Cd>CNTR</Cd>
+              <SubFmlyCd>CHRG</SubFmlyCd>
+            </Fmly>
+          </Domn>
+        </BkTxCd>
+        
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <AcctSvcrRef>REF-20251023-003</AcctSvcrRef>
+            </Refs>
+            <Amt Ccy="EUR">0.50</Amt>
+            <CdtDbtInd>DBIT</CdtDbtInd>
+            
+            <RmtInf>
+              <Ustrd>Transaction fee</Ustrd>
+            </RmtInf>
+            
+            <Chrgs>
+              <TtlChrgsAndTaxAmt Ccy="EUR">0.50</TtlChrgsAndTaxAmt>
+              <Rcrd>
+                <Amt Ccy="EUR">0.50</Amt>
+                <CdtDbtInd>DBIT</CdtDbtInd>
+                <Tp>
+                  <Prtry>
+                    <Id>TRANSFER_FEE</Id>
+                  </Prtry>
+                </Tp>
+              </Rcrd>
+            </Chrgs>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      
+      <!-- Дополнительная информация к выписке -->
+      <AddtlStmtInf>Statement generated automatically</AddtlStmtInf>
+    </Stmt>
+  </BkToCstmrStmt>
+</Document>
