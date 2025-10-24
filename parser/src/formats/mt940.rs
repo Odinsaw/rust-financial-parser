@@ -2,11 +2,12 @@ use crate::errors::ParserError;
 use crate::traits::{FinancialDataRead, FinancialDataWrite};
 
 use regex::Regex;
+use serde::{Deserialize, Serialize};
 use std::fmt::Write;
 
 use swift_mt_message::messages;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
 pub struct Mt940 {
     pub basic_header: BasicHeaderBlock,
     pub application_header: String,  // depends on implementation
@@ -15,7 +16,7 @@ pub struct Mt940 {
     pub footer: Option<String>, // depends on implementation, may be skipped
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
 pub struct BasicHeaderBlock {
     application_identifier: String,
     service_identifier: String,
