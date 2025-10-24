@@ -402,18 +402,11 @@ pub struct RelatedDates {
     pub accptnc_dt_tm: Option<String>,
 }
 
-impl Camt053 {
-    pub fn from_string(data: &str) -> Result<Self, ParserError> {
-        let data = data.replace('\u{00A0}', " ").replace('\u{FEFF}', "");
-        let result: Camt053 = from_str(&data).map_err(|e| ParserError::Camt053(e.to_string()))?;
-        Ok(result)
-    }
-}
-
 impl FinancialDataRead for Camt053 {
     fn from_read<R: std::io::Read>(reader: R) -> Result<Self, ParserError> {
         let data = Self::read_to_string(reader).map_err(|e| ParserError::Camt053(e.to_string()))?;
-        Self::from_string(&data)
+        let result: Camt053 = from_str(&data).map_err(|e| ParserError::Camt053(e.to_string()))?;
+        Ok(result)
     }
 }
 
