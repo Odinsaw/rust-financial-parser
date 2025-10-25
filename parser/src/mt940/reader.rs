@@ -1,8 +1,8 @@
 use crate::FinancialDataRead;
-use crate::mt940::format::{BasicHeaderBlock, Mt940};
 use crate::ParserError;
-use std::fmt::Write;
+use crate::mt940::format::{BasicHeaderBlock, Mt940};
 use regex::Regex;
+use std::fmt::Write;
 use swift_mt_message::messages;
 
 impl BasicHeaderBlock {
