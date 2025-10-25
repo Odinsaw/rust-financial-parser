@@ -12,6 +12,8 @@ pub enum ParserError {
     InvalidInput(String),
     #[error("General error: {0}")]
     GeneralError(String),
+    #[error("Csv parsing error: {0}")]
+    Csv(String),
 }
 
 impl From<std::io::Error> for ParserError {
