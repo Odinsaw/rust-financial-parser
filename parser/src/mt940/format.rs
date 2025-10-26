@@ -10,7 +10,7 @@ pub struct Mt940 {
     pub footer: Option<String>, // depends on implementation, may be skipped
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct BasicHeaderBlock {
     pub application_identifier: String,
     pub service_identifier: String,

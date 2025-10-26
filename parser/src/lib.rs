@@ -1,4 +1,5 @@
 pub mod camt053;
+pub mod converter;
 pub mod csv;
 pub mod errors;
 pub mod mt940;
@@ -11,3 +12,10 @@ pub use errors::ParserError;
 pub use mt940::format::Mt940;
 pub use traits::{FinancialDataRead, FinancialDataWrite};
 pub use xml::format::XmlWrapper;
+
+pub enum SupportedFormats {
+    Csv,
+    Xml,
+    Camt053,
+    Mt940,
+}
