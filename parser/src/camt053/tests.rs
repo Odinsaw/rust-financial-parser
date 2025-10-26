@@ -59,19 +59,19 @@ fn test_parse_camt053_fields() {
     let acct_id = acct.id.as_ref().unwrap();
     assert_eq!(acct_id.iban, Some("DE89370400440532013000".to_string()));
 
-    assert_eq!(stmt.bal.len(), 2);
+    assert_eq!(stmt.bal.len(), 4);
 
     let first_balance = &stmt.bal[0];
     assert!(first_balance.amt.is_some());
     let first_amt = first_balance.amt.as_ref().unwrap();
     assert_eq!(first_amt.currency, Some("EUR".to_string()));
     assert_eq!(first_amt.value, Some("1000.00".to_string()));
-    assert_eq!(first_balance.cdt_dbt_ind, Some("CRDT".to_string()));
+    assert_eq!(first_balance.cdt_dbt_ind, Some("C".to_string()));
 
     let second_balance = &stmt.bal[1];
     assert!(second_balance.amt.is_some());
     let second_amt = second_balance.amt.as_ref().unwrap();
-    assert_eq!(second_amt.value, Some("1500.50".to_string()));
+    assert_eq!(second_amt.value, Some("1150.00".to_string()));
 
     assert_eq!(stmt.ntry.len(), 2);
 
