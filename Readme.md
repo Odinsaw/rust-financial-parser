@@ -39,3 +39,15 @@ financial-parser --in-format <mt940|camt053|xml|csv> [--out-format <mt940|camt05
 ```bash
 financial-parser --in-format mt940 -i statement.mt940 --out-format camt053
 ```
+
+Запуск готовых примеров:
+
+```bash
+cargo run --example read_and_write_xml
+```
+```bash
+cargo run --example convert_mt940_to_camt05
+```
+```bash
+cargo run --example convert_camt053_to_mt940
+```
