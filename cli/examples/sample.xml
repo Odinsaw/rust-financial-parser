@@ -1,0 +1,26 @@
+<company>
+    <department name="Engineering">
+        <employee id="1">
+            <name>Alice</name>
+            <age>30</age>
+            <position>Software Engineer</position>
+        </employee>
+        <employee id="2">
+            <name>Bob</name>
+            <age>25</age>
+            <position>DevOps Engineer</position>
+        </employee>
+    </department>
+    <department name="Sales">
+        <employee id="3">
+            <name>Charlie</name>
+            <age>40</age>
+            <position>Sales Manager</position>
+        </employee>
+        <employee id="4">
+            <name>Diana</name>
+            <age>28</age>
+            <position>Account Executive</position>
+        </employee>
+    </department>
+</company>
