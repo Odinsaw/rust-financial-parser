@@ -1,19 +1,29 @@
 use crate::FinancialDataWrite;
-use crate::ParserError;
 use crate::XmlWrapper;
-use quick_xml::se::to_string;
+use crate::ParserError;
+use serde::Serialize;
+use std::io::Write;
 
 impl XmlWrapper {
     pub fn to_string(&self) -> Result<String, ParserError> {
-        let xml_text = to_string(&self.0).map_err(|e| ParserError::Xml(e.to_string()))?;
-        Ok(xml_text)
+        Ok(self.0.clone())
     }
 }
 
 impl FinancialDataWrite for XmlWrapper {
-    fn write_to<W: std::io::Write>(&self, writer: W) -> Result<(), ParserError> {
-        let data = self.to_string()?;
-        Self::write_string(writer, &data)?;
+    fn write_to<W: Write>(&self, writer: W) -> Result<(), ParserError> {
+        std::io::BufWriter::new(writer)
+            .write_all(self.0.as_bytes())
+            .map_err(|e| ParserError::Xml(e.to_string()))?;
         Ok(())
+    }
+}
+
+impl Serialize for XmlWrapper {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(&self.0)
     }
 }

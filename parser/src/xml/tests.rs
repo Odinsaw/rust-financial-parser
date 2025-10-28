@@ -36,13 +36,13 @@ fn test_read_write() {
 </company>
 "#
     .to_string();
-    let xml = CsvWrapper::from_string(&xml_data).unwrap();
+    let xml = XmlWrapper::from_string(&xml_data).unwrap();
 
     let write_xml_file = File::create(new_file_path).unwrap();
     let _ = xml.write_to(write_xml_file).unwrap();
 
     let read_xml_file = File::open(new_file_path).unwrap();
-    let read_xml = CsvWrapper::from_read(read_xml_file).unwrap();
+    let read_xml = XmlWrapper::from_read(read_xml_file).unwrap();
     std::fs::remove_file(new_file_path).unwrap();
     assert_eq!(xml, read_xml);
 }
