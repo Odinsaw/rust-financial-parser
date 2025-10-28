@@ -5,3 +5,5 @@ edition = "2024"
 
 [dependencies]
 parser = { path = "../parser" }
+clap = { version = "4.4", features = ["derive"] }
+anyhow = "1.0"
