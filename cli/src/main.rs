@@ -30,7 +30,7 @@ fn main() -> Result<()> {
             Arg::new("in-format")
                 .long("in-format")
                 .value_name("FORMAT")
-                .value_parser(["mt940", "camt053"])
+                .value_parser(["mt940", "camt053", "xml", "csv"])
                 .required(true)
                 .help("Input format"),
         )
@@ -38,9 +38,8 @@ fn main() -> Result<()> {
             Arg::new("out-format")
                 .long("out-format")
                 .value_name("FORMAT")
-                .value_parser(["mt940", "camt053"])
-                .required(true)
-                .help("Output format"),
+                .value_parser(["mt940", "camt053", "xml", "csv"])
+                .help("Output format (defaults to the same as input format)"),
         )
         .arg(
             Arg::new("verbose")
@@ -58,11 +57,11 @@ fn main() -> Result<()> {
         .unwrap()
         .parse()
         .unwrap();
+
     let out_format: SupportedFormats = matches
         .get_one::<String>("out-format")
-        .unwrap()
-        .parse()
-        .unwrap();
+        .map(|s| s.parse().unwrap())
+        .unwrap_or(in_format.clone());
     let verbose = matches.get_flag("verbose");
 
     if verbose {

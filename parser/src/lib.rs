@@ -28,7 +28,12 @@ impl std::str::FromStr for SupportedFormats {
         match s.to_lowercase().as_str() {
             "mt940" => Ok(SupportedFormats::Mt940),
             "camt053" => Ok(SupportedFormats::Camt053),
-            _ => Err(format!("Unknown format: {}. Use 'mt940' or 'camt053'", s)),
+            "xml" => Ok(SupportedFormats::Xml),
+            "csv" => Ok(SupportedFormats::Csv),
+            _ => Err(format!(
+                "Unknown format: {}. Use 'mt940', 'camt053', 'xml' or 'csv'",
+                s
+            )),
         }
     }
 }
