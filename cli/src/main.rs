@@ -7,7 +7,7 @@ use std::fs::File;
 use std::io::{self, Write};
 
 fn main() -> Result<()> {
-    let matches = Command::new("parser-cli")
+    let matches = Command::new("financial-parcer")
         .version("1.0")
         .about("CLI utility for converting between MT940 and CAMT053 formats")
         .arg(
