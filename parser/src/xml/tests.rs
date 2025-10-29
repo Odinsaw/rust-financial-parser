@@ -1,11 +1,14 @@
 use crate::*;
 
 use std::fs::File;
-use std::path::Path;
+use std::path::PathBuf;
+use std::env;
 
 #[test]
 fn test_read_write() {
-    let new_file_path = Path::new(r"test_data\new_file.xml");
+    let manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
+    let path = PathBuf::from(manifest_dir).join("test_data");
+    let new_file_path = path.join("new_file.xml");
 
     let xml_data = r#"
 <company>
@@ -38,11 +41,11 @@ fn test_read_write() {
     .to_string();
     let xml = XmlWrapper::from_string(&xml_data).unwrap();
 
-    let write_xml_file = File::create(new_file_path).unwrap();
+    let write_xml_file = File::create(&new_file_path).unwrap();
     let _ = xml.write_to(write_xml_file).unwrap();
 
-    let read_xml_file = File::open(new_file_path).unwrap();
+    let read_xml_file = File::open(&new_file_path).unwrap();
     let read_xml = XmlWrapper::from_read(read_xml_file).unwrap();
-    std::fs::remove_file(new_file_path).unwrap();
+    std::fs::remove_file(&new_file_path).unwrap();
     assert_eq!(xml, read_xml);
 }

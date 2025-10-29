@@ -200,11 +200,14 @@ mod tests {
     use super::*;
     use crate::traits::FinancialDataRead;
     use std::fs::File;
-    use std::path::Path;
+    use std::env;
+    use std::path::PathBuf;
 
     #[test]
     fn test_convert_camt053_to_mt940() {
-        let target_file_path = Path::new(r"test_data\valid1.camt053");
+        let manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
+        let path = PathBuf::from(manifest_dir).join("test_data");
+        let target_file_path = path.join("valid1.camt053");
         let target_file = File::open(target_file_path).unwrap();
         let camt053_valid = Camt053::from_read(target_file).unwrap();
 

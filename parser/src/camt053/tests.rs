@@ -3,10 +3,13 @@ use crate::traits::FinancialDataRead;
 use crate::traits::FinancialDataWrite;
 
 use std::fs::File;
+use std::path::PathBuf;
+use std::env;
 
 #[test]
 fn test_parse() {
-    let path = std::path::Path::new(r"test_data");
+    let manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
+    let path = PathBuf::from(manifest_dir).join("test_data");
     let valid_file1 = File::open(path.join("valid1.camt053")).unwrap();
     let valid_file2 = File::open(path.join("valid2.camt053")).unwrap();
     let valid_file3 = File::open(path.join("valid3.camt053")).unwrap();
@@ -26,7 +29,8 @@ fn test_parse() {
 
 #[test]
 fn test_parse_camt053_fields() {
-    let path = std::path::Path::new(r"test_data");
+    let manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
+    let path = PathBuf::from(manifest_dir).join("test_data");
     let valid_file1 = File::open(path.join("valid1.camt053")).unwrap();
 
     let document = Camt053::from_read(valid_file1).expect("Failed to parse CAMT.053 XML");
@@ -133,24 +137,24 @@ fn test_parse_camt053_fields() {
     assert_eq!(prtry.issr, Some("Bank".to_string()));
 }
 
-use std::path::Path;
-
 #[test]
 fn test_read_write() {
     // file paths: new file that will be created and valid camt053 file to compare
-    let new_file_path = Path::new(r"test_data\test_write.camt053");
-    let target_file_path = Path::new(r"test_data\valid1.camt053");
+    let manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
+    let path = PathBuf::from(manifest_dir).join("test_data");
+    let new_file_path = path.join("test_write.camt053");
+    let target_file_path = path.join("valid1.camt053");
     // files
-    let new_file = File::create(new_file_path).unwrap();
+    let new_file = File::create(&new_file_path).unwrap();
     let target_file = File::open(target_file_path).unwrap();
     // load valid camt053 file to struct (read tests suggest this operation is correct)
     // then serialize and write to new file
     let camt053_valid = Camt053::from_read(target_file).unwrap();
     let _ = camt053_valid.write_to(new_file).unwrap();
     // load new file and check that deserialization is correct
-    let new_file = File::open(new_file_path).unwrap();
+    let new_file = File::open(&new_file_path).unwrap();
     let read_from_new_file = Camt053::from_read(new_file).unwrap();
-    std::fs::remove_file(new_file_path).unwrap();
+    std::fs::remove_file(&new_file_path).unwrap();
 
     // Can't compare two Camt053 structs directly:
     // Serde sometimes use None and sometimes empty string/struct

@@ -24,11 +24,13 @@ fn test_basic_header_constructor() {
 }
 
 use std::fs::File;
-use std::path::Path;
+use std::path::PathBuf;
+use std::env;
 
 #[test]
 fn test_with_file() {
-    let path = std::path::Path::new(r"test_data");
+    let manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
+    let path = PathBuf::from(manifest_dir).join("test_data");
     let valid_case1 = File::open(path.join("valid1.mt940")).unwrap();
     let valid_case2 = File::open(path.join("valid2.mt940")).unwrap();
     let invalid_case1 = File::open(path.join("invalid1.mt940")).unwrap();
@@ -49,18 +51,20 @@ fn test_with_file() {
 #[test]
 fn test_read_write() {
     // file paths: new file that will be created and valid mt940 file to compare
-    let new_file_path = Path::new(r"test_data\test_write.mt940");
-    let target_file_path = Path::new(r"test_data\valid1.mt940");
+    let manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
+    let path = PathBuf::from(manifest_dir).join("test_data");
+    let new_file_path = path.join("test_write.mt940");
+    let target_file_path = path.join("valid1.mt940");
     // files
-    let new_file = File::create(new_file_path).unwrap();
+    let new_file = File::create(&new_file_path).unwrap();
     let target_file = File::open(target_file_path).unwrap();
     // load valid mt940 file to struct (read tests suggest this operation is correct)
     // then serialize and write to new file
     let mt940_valid = Mt940::from_read(target_file).unwrap();
     let _ = mt940_valid.write_to(new_file).unwrap();
     // load new file and check that deserialization is correct
-    let new_file = File::open(new_file_path).unwrap();
+    let new_file = File::open(&new_file_path).unwrap();
     let read_from_new_file = Mt940::from_read(new_file).unwrap();
-    std::fs::remove_file(new_file_path).unwrap();
+    std::fs::remove_file(&new_file_path).unwrap();
     assert_eq!(read_from_new_file, mt940_valid);
 }
