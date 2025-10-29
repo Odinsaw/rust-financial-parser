@@ -33,8 +33,8 @@ fn test_with_file() {
     let path = PathBuf::from(manifest_dir).join("test_data");
     let valid_case1 = File::open(path.join("valid1.mt940")).unwrap();
     let valid_case2 = File::open(path.join("valid2.mt940")).unwrap();
-    let invalid_case1 = File::open(path.join("invalid1.mt940")).unwrap();
-    let invalid_case2 = File::open(path.join("invalid2.mt940")).unwrap();
+    let invalid_case1 = File::open(path.join("Invalid1.mt940")).unwrap();
+    let invalid_case2 = File::open(path.join("Invalid2.mt940")).unwrap();
 
     let mt940_valid1 = Mt940::from_read(valid_case1);
     let mt940_valid2 = Mt940::from_read(valid_case2);
