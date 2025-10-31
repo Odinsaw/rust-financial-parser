@@ -13,7 +13,7 @@ pub use mt940::format::Mt940;
 pub use traits::{FinancialDataRead, FinancialDataWrite};
 pub use xml::format::XmlWrapper;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum SupportedFormats {
     Csv,
     Xml,
@@ -34,6 +34,17 @@ impl std::str::FromStr for SupportedFormats {
                 "Unknown format: {}. Use 'mt940', 'camt053', 'xml' or 'csv'",
                 s
             )),
+        }
+    }
+}
+
+impl SupportedFormats {
+    fn to_string(&self) -> String {
+        match self {
+            SupportedFormats::Mt940 => "mt940".to_string(),
+            SupportedFormats::Camt053 => "camt053".to_string(),
+            SupportedFormats::Xml => "xml".to_string(),
+            SupportedFormats::Csv => "csv".to_string(),
         }
     }
 }

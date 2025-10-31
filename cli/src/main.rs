@@ -3,11 +3,10 @@ mod errors;
 use anyhow::{Context, Result};
 use clap::{Arg, ArgAction, Command};
 use errors::CliError;
-use parser::{
-    Camt053, FinancialDataRead, FinancialDataWrite, Mt940, ParserError, SupportedFormats,
-};
+use parser::SupportedFormats;
+use parser::converter::convert_streams::convert_streams;
 use std::fs::File;
-use std::io::{self, Write};
+use std::io;
 
 fn main() -> Result<(), CliError> {
     let matches = Command::new("financial-parcer")
@@ -82,9 +81,11 @@ fn main() -> Result<(), CliError> {
         eprintln!("Writing to: {}", output_path);
     }
 
+    let input_stream = create_reader(input_path)?;
+    let output_stream = create_writer(output_path)?;
     // Process conversion
-    process_conversion(input_path, output_path, &in_format, &out_format, verbose)
-        .context("Conversion failed")?;
+    convert_streams(input_stream, in_format, output_stream, out_format)
+        .map_err(|e| CliError::ConversionError(e.to_string()))?;
 
     if verbose {
         eprintln!("Conversion completed successfully");
@@ -93,99 +94,20 @@ fn main() -> Result<(), CliError> {
     Ok(())
 }
 
-fn process_conversion(
-    input_path: &str,
-    output_path: &str,
-    in_format: &SupportedFormats,
-    out_format: &SupportedFormats,
-    verbose: bool,
-) -> Result<(), ParserError> {
-    // If formats are the same, just copy the data
-    if in_format == out_format {
-        if verbose {
-            eprintln!("Input and output formats are the same, copying data as-is");
-        }
-        copy_input_to_output(input_path, output_path)?;
-        return Ok(());
-    }
-
-    match (in_format, out_format) {
-        (SupportedFormats::Mt940, SupportedFormats::Camt053) => {
-            if verbose {
-                eprintln!("Converting MT940 to CAMT053");
-            }
-            convert_mt940_to_camt053(input_path, output_path)
-        }
-        (SupportedFormats::Camt053, SupportedFormats::Mt940) => {
-            if verbose {
-                eprintln!("Converting CAMT053 to MT940");
-            }
-            convert_camt053_to_mt940(input_path, output_path)
-        }
-        _ => unreachable!(),
-    }
-}
-
-fn copy_input_to_output(input_path: &str, output_path: &str) -> Result<(), ParserError> {
-    let input_reader = create_reader(input_path)?;
-    let output_writer = create_writer(output_path)?;
-
-    let mut input_buf = std::io::BufReader::new(input_reader);
-    let mut output_buf = std::io::BufWriter::new(output_writer);
-
-    std::io::copy(&mut input_buf, &mut output_buf)?;
-    output_buf.flush()?;
-
-    Ok(())
-}
-
-fn convert_mt940_to_camt053(input_path: &str, output_path: &str) -> Result<(), ParserError> {
-    let input_reader = create_reader(input_path)?;
-    let output_writer = create_writer(output_path)?;
-
-    let mt940 = Mt940::from_read(input_reader)?;
-    let camt053_result: Result<Camt053, ParserError> = From::from(&mt940);
-    let camt053 = camt053_result?;
-
-    camt053.write_to(output_writer)?;
-    Ok(())
-}
-
-fn convert_camt053_to_mt940(input_path: &str, output_path: &str) -> Result<(), ParserError> {
-    let input_reader = create_reader(input_path)?;
-    let output_writer = create_writer(output_path)?;
-
-    let camt053 = Camt053::from_read(input_reader)?;
-    let mt940_vec_result: Result<Vec<Mt940>, ParserError> = From::from(&camt053);
-    let mt940_vec = mt940_vec_result?;
-
-    let mut buffered_writer = std::io::BufWriter::new(output_writer);
-
-    for (i, mt940) in mt940_vec.into_iter().enumerate() {
-        if i > 0 {
-            buffered_writer.write_all(b"\n\n")?;
-        }
-        mt940.write_to(&mut buffered_writer)?;
-    }
-
-    buffered_writer.flush()?;
-    Ok(())
-}
-
-fn create_reader(input_path: &str) -> Result<Box<dyn std::io::Read>, ParserError> {
+fn create_reader(input_path: &str) -> Result<Box<dyn std::io::Read>, CliError> {
     if input_path == "-" {
         Ok(Box::new(io::stdin()))
     } else {
-        let file = File::open(input_path).map_err(|e| ParserError::Io(e.to_string()))?;
+        let file = File::open(input_path).map_err(|e| CliError::Io(e))?;
         Ok(Box::new(file))
     }
 }
 
-fn create_writer(output_path: &str) -> Result<Box<dyn std::io::Write>, ParserError> {
+fn create_writer(output_path: &str) -> Result<Box<dyn std::io::Write>, CliError> {
     if output_path == "-" {
         Ok(Box::new(io::stdout()))
     } else {
-        let file = File::create(output_path).map_err(|e| ParserError::Io(e.to_string()))?;
+        let file = File::create(output_path).map_err(|e| CliError::Io(e))?;
         Ok(Box::new(file))
     }
 }
