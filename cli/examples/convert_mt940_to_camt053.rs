@@ -10,7 +10,7 @@ fn main() -> Result<(), ParserError> {
 
     let input_file = PathBuf::from(manifest_dir.clone())
         .join("examples")
-        .join("samples.mt940");
+        .join("sample.mt940");
 
     let output_file = PathBuf::from(manifest_dir)
         .join("examples")
