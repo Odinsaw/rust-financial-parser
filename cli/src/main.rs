@@ -1,5 +1,8 @@
+mod errors;
+
 use anyhow::{Context, Result};
 use clap::{Arg, ArgAction, Command};
+use error::CliError;
 use parser::{
     Camt053, FinancialDataRead, FinancialDataWrite, Mt940, ParserError, SupportedFormats,
 };
