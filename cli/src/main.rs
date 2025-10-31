@@ -9,7 +9,7 @@ use parser::{
 use std::fs::File;
 use std::io::{self, Write};
 
-fn main() -> Result<()> {
+fn main() -> Result<(), CliError> {
     let matches = Command::new("financial-parcer")
         .version("1.0")
         .about("CLI utility for converting between MT940 and CAMT053 formats")
@@ -53,18 +53,26 @@ fn main() -> Result<()> {
         )
         .get_matches();
 
-    let input_path = matches.get_one::<String>("input").unwrap();
-    let output_path = matches.get_one::<String>("output").unwrap();
-    let in_format: SupportedFormats = matches
-        .get_one::<String>("in-format")
-        .unwrap()
-        .parse()
-        .unwrap();
+    let input_path = matches
+        .get_one::<String>("input")
+        .ok_or_else(|| CliError::ArgsError("Failed to parse 'input' argument".to_string()))?;
+    let output_path = matches
+        .get_one::<String>("output")
+        .ok_or_else(|| CliError::ArgsError("Failed to parse 'output' argument".to_string()))?;
 
-    let out_format: SupportedFormats = matches
+    let in_format_str = matches
+        .get_one::<String>("in-format")
+        .ok_or_else(|| CliError::ArgsError("Missing 'in-format' argument".to_string()))?;
+    let in_format: SupportedFormats = in_format_str
+        .parse()
+        .map_err(|e| CliError::ArgsError(format!("Invalid format: {}", e)))?;
+
+    let out_format_str = matches
         .get_one::<String>("out-format")
-        .map(|s| s.parse().unwrap())
-        .unwrap_or(in_format.clone());
+        .unwrap_or(&in_format_str);
+    let out_format: SupportedFormats = out_format_str
+        .parse()
+        .map_err(|e| CliError::ArgsError(format!("Invalid format: {}", e)))?;
     let verbose = matches.get_flag("verbose");
 
     if verbose {

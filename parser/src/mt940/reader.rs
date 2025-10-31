@@ -36,10 +36,10 @@ impl BasicHeaderBlock {
 }
 
 // MT940 Can have up to 5 blocks, looking like this: e.g. {1:...}{2:...}{4:...}
-fn split_to_blocks(data: &str) -> Vec<Option<String>> {
+fn split_to_blocks(data: &str) -> Result<Vec<Option<String>>, ParserError> {
     let mut result = vec![None; 5];
 
-    let re = Regex::new(r"\{(\d):([^}]*)\}").unwrap();
+    let re = Regex::new(r"\{(\d):([^}]*)\}").map_err(|e| ParserError::Mt940(e.to_string()))?;
 
     for caps in re.captures_iter(data) {
         if let (Some(num), Some(data)) = (caps.get(1), caps.get(2)) {
@@ -51,7 +51,7 @@ fn split_to_blocks(data: &str) -> Vec<Option<String>> {
         }
     }
 
-    result
+    Ok(result)
 }
 
 impl Mt940 {
@@ -84,7 +84,7 @@ impl Mt940 {
 impl FinancialDataRead for Mt940 {
     fn from_read<R: std::io::Read>(reader: R) -> Result<Self, ParserError> {
         let data = Self::read_to_string(reader).map_err(|e| ParserError::Mt940(e.to_string()))?;
-        let blocks = split_to_blocks(&data);
+        let blocks = split_to_blocks(&data)?;
 
         let basic_header = BasicHeaderBlock::from_string(
             &blocks[0]

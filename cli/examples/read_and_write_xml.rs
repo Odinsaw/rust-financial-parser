@@ -4,7 +4,8 @@ use std::fs::File;
 use std::path::PathBuf;
 
 fn main() -> Result<(), ParserError> {
-    let manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
+    let manifest_dir =
+        env::var("CARGO_MANIFEST_DIR").map_err(|e| ParserError::GeneralError(e.to_string()))?;
 
     let input_file = PathBuf::from(manifest_dir.clone())
         .join("examples")

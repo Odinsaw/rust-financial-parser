@@ -8,4 +8,12 @@ pub enum CliError {
     ParserError(String),
     #[error("Input/output error: {0}")]
     Io(#[from] std::io::Error),
+    #[error("Format conversion: {0}")]
+    ConversionError(String),
+}
+
+impl From<anyhow::Error> for CliError {
+    fn from(err: anyhow::Error) -> Self {
+        CliError::ConversionError(err.to_string())
+    }
 }
