@@ -2,9 +2,9 @@ use crate::Camt053;
 use crate::traits::FinancialDataRead;
 use crate::traits::FinancialDataWrite;
 
+use std::env;
 use std::fs::File;
 use std::path::PathBuf;
-use std::env;
 
 #[test]
 fn test_parse() {

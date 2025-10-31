@@ -1,6 +1,6 @@
 use crate::FinancialDataRead;
-use crate::XmlWrapper;
 use crate::ParserError;
+use crate::XmlWrapper;
 use serde::Deserialize;
 use std::io::Read;
 

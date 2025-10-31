@@ -199,8 +199,8 @@ impl From<&Camt053> for Result<Vec<Mt940>, ParserError> {
 mod tests {
     use super::*;
     use crate::traits::FinancialDataRead;
-    use std::fs::File;
     use std::env;
+    use std::fs::File;
     use std::path::PathBuf;
 
     #[test]
