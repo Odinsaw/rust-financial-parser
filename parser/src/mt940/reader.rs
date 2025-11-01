@@ -80,24 +80,23 @@ impl Mt940 {
     }
 }
 
-// TODO remove clone()
 impl FinancialDataRead for Mt940 {
     fn from_read<R: std::io::Read>(reader: R) -> Result<Self, ParserError> {
         let data = Self::read_to_string(reader).map_err(|e| ParserError::Mt940(e.to_string()))?;
-        let blocks = split_to_blocks(&data)?;
+        let mut blocks = split_to_blocks(&data)?;
 
         let basic_header = BasicHeaderBlock::from_string(
             &blocks[0]
-                .clone()
+                .take()
                 .ok_or(ParserError::Mt940("Missing Basic Header Block".to_string()))?,
         )?; // can't be skipped
-        let application_header = blocks[1].clone().ok_or(ParserError::Mt940(
+        let application_header = blocks[1].take().ok_or(ParserError::Mt940(
             "Missing Application Header Block".to_string(),
         ))?; // can't be skipped
-        let user_header = blocks[2].clone(); // can be skipped
-        let statement = messages::MT940::parse_from_block4(&blocks[3].clone().unwrap_or_default())
+        let user_header = blocks[2].take(); // can be skipped
+        let statement = messages::MT940::parse_from_block4(&blocks[3].take().unwrap_or_default())
             .map_err(|e| ParserError::Mt940(e.to_string()))?; // can't be skipped
-        let footer = blocks[4].clone(); // can be skipped
+        let footer = blocks[4].take(); // can be skipped
 
         Ok(Mt940 {
             basic_header: basic_header,
