@@ -58,7 +58,7 @@ impl Mt940 {
     pub fn to_string(&self) -> Result<String, ParserError> {
         let mut msg = String::new();
 
-        let _ = write!(
+        write!(
             msg,
             "{{1:{}}}{{2:{}}}\r\n",
             self.basic_header.to_string(),
@@ -66,14 +66,14 @@ impl Mt940 {
         )?;
 
         if let Some(ref uh) = self.user_header {
-            let _ = write!(msg, "{{3:{}}}\r\n", uh)?;
+            write!(msg, "{{3:{}}}\r\n", uh)?;
         }
 
-        let _ = write!(msg, "{{4:{}\r\n", self.statement.to_mt_string())?;
-        let _ = write!(msg, "-}}\r\n")?;
+        write!(msg, "{{4:{}\r\n", self.statement.to_mt_string())?;
+        write!(msg, "-}}\r\n")?;
 
         if let Some(ref footer) = self.footer {
-            let _ = write!(msg, "{{5:{}}}", footer)?;
+            write!(msg, "{{5:{}}}", footer)?;
         }
 
         Ok(msg)
