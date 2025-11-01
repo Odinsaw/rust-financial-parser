@@ -72,8 +72,10 @@ fn format_mt940_balance_line(bal: &Balance) -> String {
     format!("{}{}{}{}", cdt_dbt, date_formatted, currency, amount)
 }
 
-impl From<&Camt053> for Result<Vec<Mt940>, ParserError> {
-    fn from(camt: &Camt053) -> Self {
+impl TryFrom<&Camt053> for Vec<Mt940> {
+    type Error = ParserError;
+
+    fn try_from(camt: &Camt053) -> Result<Self, Self::Error> {
         let mut result = vec![];
 
         let msg_id = camt
@@ -212,7 +214,7 @@ mod tests {
         let camt053_valid = Camt053::from_read(target_file).unwrap();
 
         let expected_string = "{1:}{2:}\r\n{4::20:MSG123456789\r\n:21:STMT001\r\n:25:/\r\n:28C:1/1\r\n:60F:C231005EUR1000,00\r\n:62F:C231005EUR1500,50\r\n:64:C251026EUR1150,00\r\n-}\r\n".to_string();
-        let result: Result<Vec<Mt940>, ParserError> = (&camt053_valid).into();
+        let result: Result<Vec<Mt940>, ParserError> = (&camt053_valid).try_into();
         let result = result.unwrap();
         let mt940_str = result[0].to_string();
         assert_eq!(mt940_str.unwrap(), expected_string);

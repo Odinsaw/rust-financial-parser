@@ -136,8 +136,10 @@ fn parse_entry(line: &MT940StatementLine) -> Result<Entry, ParserError> {
     })
 }
 
-impl From<&Mt940> for Result<Camt053, ParserError> {
-    fn from(mt940: &Mt940) -> Self {
+impl TryFrom<&Mt940> for Camt053 {
+    type Error = ParserError;
+
+    fn try_from(mt940: &Mt940) -> Result<Self, Self::Error> {
         let stmt = &mt940.statement;
 
         // --- GroupHeader ---
@@ -218,7 +220,7 @@ mod tests {
         let target_file = File::open(target_file_path).unwrap();
         let mt940_valid = Mt940::from_read(target_file).unwrap();
 
-        let result: Result<Camt053, ParserError> = (&mt940_valid).into();
+        let result: Result<Camt053, ParserError> = (&mt940_valid).try_into();
         let result = result.unwrap();
 
         // GroupHeader

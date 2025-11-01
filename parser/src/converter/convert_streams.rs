@@ -39,7 +39,7 @@ pub fn convert_mt940_to_camt053(
     output_stream: Box<dyn std::io::Write>,
 ) -> Result<(), ParserError> {
     let mt940 = Mt940::from_read(input_stream)?;
-    let camt053_result: Result<Camt053, ParserError> = From::from(&mt940);
+    let camt053_result: Result<Camt053, ParserError> = TryFrom::try_from(&mt940);
     let camt053 = camt053_result?;
 
     camt053.write_to(output_stream)?;
@@ -51,7 +51,7 @@ pub fn convert_camt053_to_mt940(
     output_stream: Box<dyn std::io::Write>,
 ) -> Result<(), ParserError> {
     let camt053 = Camt053::from_read(input_stream)?;
-    let mt940_vec_result: Result<Vec<Mt940>, ParserError> = From::from(&camt053);
+    let mt940_vec_result: Result<Vec<Mt940>, ParserError> = TryFrom::try_from(&camt053);
     let mt940_vec = mt940_vec_result?;
 
     let mut buffered_writer = std::io::BufWriter::new(output_stream);
