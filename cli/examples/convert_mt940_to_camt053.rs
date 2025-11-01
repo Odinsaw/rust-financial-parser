@@ -1,9 +1,10 @@
 use anyhow::Result;
-use parser::{Camt053, FinancialDataRead, FinancialDataWrite, Mt940, ParserError};
+use parser::ParserError;
+use parser::SupportedFormats;
+use parser::converter::convert_streams::convert_streams;
 use std::env;
-use std::path::PathBuf;
-
 use std::fs::File;
+use std::path::PathBuf;
 
 fn main() -> Result<(), ParserError> {
     let manifest_dir =
@@ -17,11 +18,15 @@ fn main() -> Result<(), ParserError> {
         .join("examples")
         .join("output.camt053");
 
-    let mt940 = Mt940::from_read(File::open(input_file)?)?;
-    let camt053: Result<Camt053, ParserError> = From::from(&mt940);
-    let camt053 = camt053?;
+    let input_stream = Box::new(File::open(input_file)?);
+    let output_stream = Box::new(File::create(output_file)?);
 
-    camt053.write_to(File::create(output_file)?)?;
+    let _result = convert_streams(
+        input_stream,
+        SupportedFormats::Mt940,
+        output_stream,
+        SupportedFormats::Camt053,
+    )?;
 
     println!("Conversion MT940 -> CAMT053 completed!");
     Ok(())

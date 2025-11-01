@@ -1,4 +1,7 @@
-use parser::{FinancialDataRead, FinancialDataWrite, ParserError, XmlWrapper};
+use anyhow::Result;
+use parser::ParserError;
+use parser::SupportedFormats;
+use parser::converter::convert_streams::convert_streams;
 use std::env;
 use std::fs::File;
 use std::path::PathBuf;
@@ -15,8 +18,15 @@ fn main() -> Result<(), ParserError> {
         .join("examples")
         .join("output.xml");
 
-    let xml = XmlWrapper::from_read(File::open(input_file)?)?;
-    xml.write_to(File::create(output_file)?)?;
+    let input_stream = Box::new(File::open(input_file)?);
+    let output_stream = Box::new(File::create(output_file)?);
+
+    let _result = convert_streams(
+        input_stream,
+        SupportedFormats::Xml,
+        output_stream,
+        SupportedFormats::Xml,
+    )?;
 
     println!("File copied without format conversion.");
     Ok(())
