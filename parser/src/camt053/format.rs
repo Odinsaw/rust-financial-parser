@@ -3,13 +3,13 @@ use serde::{Deserialize, Serialize};
 // Root document
 #[derive(Debug, Default, Deserialize, Serialize, PartialEq)]
 #[serde(rename = "Document")]
-pub struct Camt053 {
+pub(crate) struct Camt053 {
     #[serde(rename = "BkToCstmrStmt")]
     pub bk_to_cstmr_stmt: BankToCustomerStatement,
 }
 
 #[derive(Debug, Default, Deserialize, Serialize, PartialEq)]
-pub struct BankToCustomerStatement {
+pub(crate) struct BankToCustomerStatement {
     #[serde(rename = "GrpHdr")]
     pub grp_hdr: GroupHeader,
     #[serde(rename = "Stmt", default)]
@@ -17,7 +17,7 @@ pub struct BankToCustomerStatement {
 }
 
 #[derive(Debug, Default, Deserialize, Serialize, PartialEq)]
-pub struct GroupHeader {
+pub(crate) struct GroupHeader {
     #[serde(rename = "MsgId")]
     pub msg_id: Option<String>,
     #[serde(rename = "CreDtTm")]
@@ -25,7 +25,7 @@ pub struct GroupHeader {
 }
 
 #[derive(Debug, Default, Deserialize, Serialize, PartialEq)]
-pub struct Statement {
+pub(crate) struct Statement {
     #[serde(rename = "Id")]
     pub id: Option<String>,
     #[serde(rename = "ElctrncSeqNb")]
@@ -45,7 +45,7 @@ pub struct Statement {
 }
 
 #[derive(Debug, Default, Deserialize, Serialize, PartialEq)]
-pub struct FromToDate {
+pub(crate) struct FromToDate {
     #[serde(rename = "FrDtTm")]
     pub fr_dt_tm: Option<String>,
     #[serde(rename = "ToDtTm")]
@@ -53,7 +53,7 @@ pub struct FromToDate {
 }
 
 #[derive(Debug, Default, Deserialize, Serialize, PartialEq)]
-pub struct Account {
+pub(crate) struct Account {
     #[serde(rename = "Id")]
     pub id: Option<AccountId>,
     #[serde(rename = "Ccy")]
@@ -63,7 +63,7 @@ pub struct Account {
 }
 
 #[derive(Debug, Default, Deserialize, Serialize, PartialEq)]
-pub struct AccountId {
+pub(crate) struct AccountId {
     #[serde(rename = "IBAN")]
     pub iban: Option<String>,
     #[serde(rename = "Othr")]
@@ -71,13 +71,13 @@ pub struct AccountId {
 }
 
 #[derive(Debug, Default, Deserialize, Serialize, PartialEq)]
-pub struct GenericAccountIdentification {
+pub(crate) struct GenericAccountIdentification {
     #[serde(rename = "Id")]
     pub id: Option<String>,
 }
 
 #[derive(Debug, Default, Deserialize, Serialize, PartialEq)]
-pub struct Balance {
+pub(crate) struct Balance {
     #[serde(rename = "Tp")]
     pub tp: Option<BalanceType>,
     #[serde(rename = "Amt")]
@@ -89,13 +89,13 @@ pub struct Balance {
 }
 
 #[derive(Debug, Default, Deserialize, Serialize, PartialEq)]
-pub struct BalanceType {
+pub(crate) struct BalanceType {
     #[serde(rename = "CdOrPrtry")]
     pub cd_or_prtry: Option<CodeOrProprietary>,
 }
 
 #[derive(Debug, Default, Deserialize, Serialize, PartialEq)]
-pub struct CodeOrProprietary {
+pub(crate) struct CodeOrProprietary {
     #[serde(rename = "Cd")]
     pub cd: Option<String>,
     #[serde(rename = "Prtry")]
@@ -103,7 +103,7 @@ pub struct CodeOrProprietary {
 }
 
 #[derive(Debug, Default, Deserialize, Serialize, PartialEq)]
-pub struct Amount {
+pub(crate) struct Amount {
     #[serde(rename = "@Ccy")]
     pub currency: Option<String>,
     #[serde(rename = "$value")]
@@ -111,7 +111,7 @@ pub struct Amount {
 }
 
 #[derive(Debug, Default, Deserialize, Serialize, PartialEq)]
-pub struct DateAndDateTimeChoice {
+pub(crate) struct DateAndDateTimeChoice {
     #[serde(rename = "Dt")]
     pub dt: Option<String>,
     #[serde(rename = "DtTm")]
@@ -119,7 +119,7 @@ pub struct DateAndDateTimeChoice {
 }
 
 #[derive(Debug, Default, Deserialize, Serialize, PartialEq)]
-pub struct Entry {
+pub(crate) struct Entry {
     #[serde(rename = "Amt")]
     pub amt: Option<Amount>,
     #[serde(rename = "CdtDbtInd")]
@@ -137,7 +137,7 @@ pub struct Entry {
 }
 
 #[derive(Debug, Default, Deserialize, Serialize, PartialEq)]
-pub struct BankTransactionCode {
+pub(crate) struct BankTransactionCode {
     #[serde(rename = "Domn")]
     pub domn: Option<BankTransactionCodeStructure>,
     #[serde(rename = "Prtry")]
@@ -145,7 +145,7 @@ pub struct BankTransactionCode {
 }
 
 #[derive(Debug, Default, Deserialize, Serialize, PartialEq)]
-pub struct BankTransactionCodeStructure {
+pub(crate) struct BankTransactionCodeStructure {
     #[serde(rename = "Cd")]
     pub cd: Option<String>,
     #[serde(rename = "Fmly")]
@@ -153,7 +153,7 @@ pub struct BankTransactionCodeStructure {
 }
 
 #[derive(Debug, Default, Deserialize, Serialize, PartialEq)]
-pub struct BankTransactionCodeFamily {
+pub(crate) struct BankTransactionCodeFamily {
     #[serde(rename = "Cd")]
     pub cd: Option<String>,
     #[serde(rename = "SubFmlyCd")]
@@ -161,7 +161,7 @@ pub struct BankTransactionCodeFamily {
 }
 
 #[derive(Debug, Default, Deserialize, Serialize, PartialEq)]
-pub struct ProprietaryBankTransactionCode {
+pub(crate) struct ProprietaryBankTransactionCode {
     #[serde(rename = "Cd")]
     pub cd: Option<String>,
     #[serde(rename = "Issr")]
@@ -169,13 +169,13 @@ pub struct ProprietaryBankTransactionCode {
 }
 
 #[derive(Debug, Default, Deserialize, Serialize, PartialEq)]
-pub struct EntryDetails {
+pub(crate) struct EntryDetails {
     #[serde(rename = "TxDtls", default)]
     pub tx_dtls: Vec<TransactionDetails>,
 }
 
 #[derive(Debug, Default, Deserialize, Serialize, PartialEq)]
-pub struct TransactionDetails {
+pub(crate) struct TransactionDetails {
     #[serde(rename = "Refs")]
     pub refs: Option<TransactionReferences>,
     #[serde(rename = "Amt")]
@@ -187,7 +187,7 @@ pub struct TransactionDetails {
 }
 
 #[derive(Debug, Default, Deserialize, Serialize, PartialEq)]
-pub struct TransactionReferences {
+pub(crate) struct TransactionReferences {
     #[serde(rename = "MsgId")]
     pub msg_id: Option<String>,
     #[serde(rename = "AcctSvcrRef")]
@@ -203,7 +203,7 @@ pub struct TransactionReferences {
 }
 
 #[derive(Debug, Default, Deserialize, Serialize, PartialEq)]
-pub struct RelatedParties {
+pub(crate) struct RelatedParties {
     #[serde(rename = "Dbtr")]
     pub dbtr: Option<Party>,
     #[serde(rename = "Cdtr")]
@@ -215,13 +215,13 @@ pub struct RelatedParties {
 }
 
 #[derive(Debug, Default, Deserialize, Serialize, PartialEq)]
-pub struct Party {
+pub(crate) struct Party {
     #[serde(rename = "Nm")]
     pub name: Option<String>,
 }
 
 #[derive(Debug, Default, Deserialize, Serialize, PartialEq)]
-pub struct AccountIdentification {
+pub(crate) struct AccountIdentification {
     #[serde(rename = "IBAN")]
     pub iban: Option<String>,
     #[serde(rename = "Othr")]
@@ -229,7 +229,7 @@ pub struct AccountIdentification {
 }
 
 #[derive(Debug, Default, Deserialize, Serialize, PartialEq)]
-pub struct RemittanceInformation {
+pub(crate) struct RemittanceInformation {
     #[serde(rename = "Ustrd", default)]
     pub ustrd: Vec<String>,
 }

@@ -1,3 +1,5 @@
+#![warn(missing_docs)]
+
 mod errors;
 
 use anyhow::{Context, Result};
@@ -8,6 +10,32 @@ use parser::converter::convert_streams::convert_streams;
 use std::fs::File;
 use std::io;
 
+/// Entry point for the CLI application.
+///
+/// Parses command-line arguments, sets up input and output streams, and
+/// performs conversion between supported financial formats (e.g., MT940, CAMT.053, CSV, XML).
+///
+/// # Command-line arguments
+///
+/// - `-i, --input <FILE>`: Input file (use `-` or omit for stdin). Default: `-`.
+/// - `-o, --output <FILE>`: Output file (use `-` or omit for stdout). Default: `-`.
+/// - `--in-format <FORMAT>`: Input format (required). Options: `"mt940"`, `"camt053"`, `"xml"`, `"csv"`.
+/// - `--out-format <FORMAT>`: Output format. Defaults to the same as input format.
+/// - `-v, --verbose`: Enable verbose output.
+///
+/// # Behavior
+///
+/// - Reads the input stream and parses it according to the input format.
+/// - Converts the data to the requested output format.
+/// - Writes the result to the output stream.
+/// - If verbose mode is enabled, prints detailed information to stderr.
+///
+/// # Errors
+///
+/// Returns a [`CliError`] in the following cases:
+/// - Invalid or missing command-line arguments (`ArgsError`).
+/// - Input/output errors (`Io`).
+/// - Parsing or conversion failures (`ParserError` or `ConversionError`).
 fn main() -> Result<(), CliError> {
     let matches = Command::new("financial-parcer")
         .version("1.0")
@@ -94,6 +122,13 @@ fn main() -> Result<(), CliError> {
     Ok(())
 }
 
+/// Creates a boxed reader from the specified input path.
+///
+/// If the input path is `"-"`, returns a reader for stdin; otherwise, opens the file.
+///
+/// # Errors
+///
+/// Returns a [`CliError::Io`] if the file cannot be opened.
 fn create_reader(input_path: &str) -> Result<Box<dyn std::io::Read>, CliError> {
     if input_path == "-" {
         Ok(Box::new(io::stdin()))
@@ -103,6 +138,13 @@ fn create_reader(input_path: &str) -> Result<Box<dyn std::io::Read>, CliError> {
     }
 }
 
+/// Creates a boxed writer for the specified output path.
+///
+/// If the output path is `"-"`, returns a writer for stdout; otherwise, creates/truncates the file.
+///
+/// # Errors
+///
+/// Returns a [`CliError::Io`] if the file cannot be created.
 fn create_writer(output_path: &str) -> Result<Box<dyn std::io::Write>, CliError> {
     if output_path == "-" {
         Ok(Box::new(io::stdout()))

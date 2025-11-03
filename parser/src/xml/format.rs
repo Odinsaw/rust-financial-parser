@@ -1,2 +1,2 @@
 #[derive(Debug, Clone, PartialEq)]
-pub struct XmlWrapper(pub String);
+pub(crate) struct XmlWrapper(pub(crate) String);

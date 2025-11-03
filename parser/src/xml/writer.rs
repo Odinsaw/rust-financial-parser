@@ -1,6 +1,6 @@
 use crate::FinancialDataWrite;
 use crate::ParserError;
-use crate::XmlWrapper;
+use crate::xml::format::XmlWrapper;
 use serde::Serialize;
 use std::io::Write;
 

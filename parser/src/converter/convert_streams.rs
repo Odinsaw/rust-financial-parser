@@ -7,6 +7,28 @@ use crate::traits::FinancialDataWrite;
 
 use std::io::Write;
 
+/// Converts data between supported financial statement formats using input and output streams.
+///
+/// This function reads data from the given `input_stream` in the specified `input_format`,
+/// converts it to the desired `output_format`, and writes the result to the provided `output_stream`.
+///
+/// # Arguments
+///
+/// * `input_stream` — Input data source implementing [`std::io::Read`].
+/// * `input_format` — The format of the input data (e.g., `SupportedFormats::Mt940`).
+/// * `output_stream` — Output destination implementing [`std::io::Write`].
+/// * `output_format` — The desired output format (e.g., `SupportedFormats::Camt053`).
+///
+/// # Behavior
+///
+/// - If the input and output formats are identical, the data is copied directly.
+/// - If a supported conversion path exists (e.g., MT940 → CAMT.053 or vice versa),
+///   the data is parsed and re-serialized.
+/// - For unsupported format combinations, an error of type [`ParserError::Converter`] is returned.
+///
+/// # Errors
+///
+/// Returns a [`ParserError`] if any parsing, I/O, or conversion error occurs.
 pub fn convert_streams(
     input_stream: Box<dyn std::io::Read>,
     input_format: SupportedFormats,
@@ -34,6 +56,14 @@ pub fn convert_streams(
     }
 }
 
+/// Converts a stream of **MT940** data into **CAMT.053** format.
+///
+/// Parses MT940 data from the input stream, converts it to a [`Camt053`] structure,
+/// and writes the resulting XML to the output stream.
+///
+/// # Errors
+///
+/// Returns a [`ParserError`] if the MT940 data cannot be parsed or if writing fails.
 pub fn convert_mt940_to_camt053(
     input_stream: Box<dyn std::io::Read>,
     output_stream: Box<dyn std::io::Write>,
@@ -46,6 +76,19 @@ pub fn convert_mt940_to_camt053(
     Ok(())
 }
 
+/// Converts a stream of **CAMT.053** data into **MT940** format.
+///
+/// Parses CAMT.053 XML from the input stream, converts it to one or more [`Mt940`] records,
+/// and writes them to the output stream.
+///
+/// # Behavior
+///
+/// - Multiple MT940 statements may be generated from a single CAMT.053 file.
+/// - Each MT940 record is separated by two newline characters for readability.
+///
+/// # Errors
+///
+/// Returns a [`ParserError`] if the CAMT.053 data cannot be parsed, converted, or written.
 pub fn convert_camt053_to_mt940(
     input_stream: Box<dyn std::io::Read>,
     output_stream: Box<dyn std::io::Write>,
@@ -67,6 +110,13 @@ pub fn convert_camt053_to_mt940(
     Ok(())
 }
 
+/// Copies raw data from the input stream to the output stream.
+///
+/// This function is used when no conversion between formats is necessary.
+///
+/// # Errors
+///
+/// Returns a [`ParserError`] if an I/O error occurs during reading or writing.
 fn copy_input_to_output(
     input_stream: Box<dyn std::io::Read>,
     output_stream: Box<dyn std::io::Write>,
