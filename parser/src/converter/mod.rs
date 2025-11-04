@@ -15,3 +15,12 @@ pub mod to_camt053;
 /// Includes logic for transforming CAMT.053 or other supported formats
 /// into SWIFT MT940 text statements.
 pub mod to_mt940;
+
+/// Module for converting data to the **Xml** format.
+///
+/// Includes logic for transforming CAMT.053 or other supported formats
+/// into xml document.
+pub mod to_xml;
+
+/// Helper wrapper for mt940 - xml conversions
+mod mt940xml_wrapper;

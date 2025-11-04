@@ -1,9 +1,12 @@
 use crate::ParserError;
 use crate::camt053::format::*;
 use crate::mt940::format::*;
+use crate::xml::format::*;
 use chrono::NaiveDate;
 use swift_mt_message::MT940StatementLine;
 use swift_mt_message::SwiftField;
+
+use quick_xml::de;
 
 // --- Helper: parse balance ---
 // It's easier to convert balance to swift string and parse it
@@ -204,6 +207,15 @@ impl TryFrom<&Mt940> for Camt053 {
     }
 }
 
+impl TryFrom<&XmlWrapper> for Camt053 {
+    type Error = ParserError;
+
+    fn try_from(value: &XmlWrapper) -> Result<Self, Self::Error> {
+        let camt = de::from_str(&value.0).map_err(|e| ParserError::Converter(e.to_string()))?;
+        Ok(camt)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -292,5 +304,23 @@ mod tests {
             tx_details.rmt_inf.as_ref().unwrap().ustrd[0],
             "Payment to supplier Roga i Kopyta Inv 1001".to_string() // :86:Payment to supplier Roga i Kopyta Inv 1001
         );
+    }
+
+    #[test]
+    fn test_convert_xmlwrapper_to_camt053() {
+        let xml_data = r#"
+            <Document>
+                <BkToCstmrStmt>
+                    <GrpHdr>
+                        <MsgId>12345</MsgId>
+                    </GrpHdr>
+                </BkToCstmrStmt>
+            </Document>
+        "#;
+
+        let xml_wrapper = XmlWrapper(xml_data.to_string());
+        let result = Camt053::try_from(&xml_wrapper).unwrap();
+
+        assert_eq!(result.bk_to_cstmr_stmt.grp_hdr.msg_id.unwrap(), "12345");
     }
 }

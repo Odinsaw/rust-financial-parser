@@ -2,6 +2,7 @@ use crate::Camt053;
 use crate::Mt940;
 use crate::ParserError;
 use crate::SupportedFormats;
+use crate::XmlWrapper;
 use crate::traits::FinancialDataRead;
 use crate::traits::FinancialDataWrite;
 
@@ -47,6 +48,12 @@ pub fn convert_streams(
         }
         (SupportedFormats::Camt053, SupportedFormats::Mt940) => {
             convert_camt053_to_mt940(input_stream, output_stream)
+        }
+        (SupportedFormats::Mt940, SupportedFormats::Xml) => {
+            convert_mt940_to_xml(input_stream, output_stream)
+        }
+        (SupportedFormats::Camt053, SupportedFormats::Xml) => {
+            convert_camt053_to_xml(input_stream, output_stream)
         }
         _ => Err(ParserError::Converter(format!(
             "Unsupported format conversion: {} to {}",
@@ -107,6 +114,56 @@ pub fn convert_camt053_to_mt940(
     }
 
     buffered_writer.flush()?;
+    Ok(())
+}
+
+/// Converts a stream of **MT940** data into XML format.
+///
+/// Parses MT940 data from the input stream, converts it into an [`XmlWrapper`],
+/// and writes the resulting XML to the output stream.
+///
+/// # Behavior
+///
+/// - Only a single XML document is produced per MT940 input stream.
+/// - The XML output is serialized directly to the provided output stream.
+///
+/// # Errors
+///
+/// Returns a [`ParserError`] if the MT940 data cannot be parsed, converted, or written.
+pub fn convert_mt940_to_xml(
+    input_stream: Box<dyn std::io::Read>,
+    output_stream: Box<dyn std::io::Write>,
+) -> Result<(), ParserError> {
+    let mt940 = Mt940::from_read(input_stream)?;
+    let xml_result: Result<XmlWrapper, ParserError> = TryFrom::try_from(&mt940);
+    let xml = xml_result?;
+
+    xml.write_to(output_stream)?;
+    Ok(())
+}
+
+/// Converts a stream of **CAMT.053** data into XML format.
+///
+/// Parses CAMT.053 XML from the input stream, wraps it in an [`XmlWrapper`],
+/// and writes the resulting XML to the output stream.
+///
+/// # Behavior
+///
+/// - Only a single XML document is produced per CAMT.053 input stream.
+/// - The XML output is serialized directly to the provided output stream.
+///
+/// # Errors
+///
+/// Returns a [`ParserError`] if the CAMT.053 data cannot be parsed, converted, or written.
+pub fn convert_camt053_to_xml(
+    input_stream: Box<dyn std::io::Read>,
+    output_stream: Box<dyn std::io::Write>,
+) -> Result<(), ParserError> {
+    let camt053 = Camt053::from_read(input_stream)?;
+    let xml_result: Result<XmlWrapper, ParserError> = TryFrom::try_from(&camt053);
+    let xml = xml_result?;
+
+    xml.write_to(output_stream)?;
     Ok(())
 }
 

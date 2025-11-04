@@ -1,8 +1,16 @@
 use crate::ParserError;
 use crate::camt053::format::*;
 use crate::mt940::format::*;
+use crate::xml::format::*;
 use chrono::Datelike;
+
 use swift_mt_message::MT940StatementLine;
+
+use quick_xml::de::from_str;
+
+use super::mt940xml_wrapper::*;
+use swift_mt_message::messages;
+
 use swift_mt_message::SwiftField;
 
 /*
@@ -194,6 +202,45 @@ impl TryFrom<&Camt053> for Vec<Mt940> {
         }
 
         Ok(result)
+    }
+}
+
+impl TryFrom<&XmlWrapper> for Mt940 {
+    type Error = ParserError;
+
+    fn try_from(xml_wrapper: &XmlWrapper) -> Result<Self, Self::Error> {
+        let mt940_xml: Mt940Xml = from_str(&xml_wrapper.0)
+            .map_err(|e| ParserError::Converter(format!("XML deserialization error: {}", e)))?;
+
+        let statement_lines = mt940_xml
+            .statement
+            .statement_lines
+            .iter()
+            .map(|line| MT940StatementLine {
+                field_61: line.field_61.clone(),
+                field_86: line.field_86.clone(),
+            })
+            .collect();
+
+        let mt940 = Mt940 {
+            basic_header: mt940_xml.basic_header.clone(),
+            application_header: mt940_xml.application_header.clone(),
+            user_header: mt940_xml.user_header.clone(),
+            statement: messages::MT940 {
+                field_20: mt940_xml.statement.field_20,
+                field_21: mt940_xml.statement.field_21,
+                field_25: mt940_xml.statement.field_25,
+                field_28c: mt940_xml.statement.field_28c,
+                field_60f: mt940_xml.statement.field_60f,
+                statement_lines,
+                field_62f: mt940_xml.statement.field_62f,
+                field_64: mt940_xml.statement.field_64,
+                field_65: mt940_xml.statement.field_65.map(|v| v.to_vec()),
+            },
+            footer: mt940_xml.footer.clone(),
+        };
+
+        Ok(mt940)
     }
 }
 
