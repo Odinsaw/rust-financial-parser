@@ -6,7 +6,7 @@ use std::fmt::Write;
 use swift_mt_message::messages;
 
 impl BasicHeaderBlock {
-    pub fn from_string(data: &str) -> Result<Self, ParserError> {
+    pub(crate) fn from_string(data: &str) -> Result<Self, ParserError> {
         // This len is fixed
         if data.len() != 25 {
             return Err(ParserError::Mt940(
@@ -23,7 +23,7 @@ impl BasicHeaderBlock {
         })
     }
 
-    pub fn to_string(&self) -> String {
+    pub(crate) fn to_string(&self) -> String {
         format!(
             "{}{}{}{}{}",
             self.application_identifier,
@@ -55,7 +55,7 @@ fn split_to_blocks(data: &str) -> Result<Vec<Option<String>>, ParserError> {
 }
 
 impl Mt940 {
-    pub fn to_string(&self) -> Result<String, ParserError> {
+    pub(crate) fn to_string(&self) -> Result<String, ParserError> {
         let mut msg = String::new();
 
         write!(

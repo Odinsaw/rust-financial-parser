@@ -4,7 +4,7 @@ use crate::ParserError;
 use csv::ReaderBuilder;
 
 impl CsvWrapper {
-    pub fn from_string(s: &str) -> Result<Self, ParserError> {
+    fn from_string(s: &str) -> Result<Self, ParserError> {
         let mut rdr = ReaderBuilder::new()
             .has_headers(true)
             .from_reader(s.as_bytes());

@@ -1,6 +1,6 @@
-pub mod format;
-pub mod reader;
-pub mod writer;
+pub(crate) mod format;
+pub(crate) mod reader;
+pub(crate) mod writer;
 
 #[cfg(test)]
 mod tests;

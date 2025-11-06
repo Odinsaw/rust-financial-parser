@@ -5,7 +5,7 @@ use serde::Serialize;
 use std::io::Write;
 
 impl XmlWrapper {
-    pub fn to_string(&self) -> Result<String, ParserError> {
+    pub(crate) fn to_string(&self) -> Result<String, ParserError> {
         Ok(self.0.clone())
     }
 }

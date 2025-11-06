@@ -4,7 +4,7 @@ use crate::ParserError;
 use csv::WriterBuilder;
 
 impl CsvWrapper {
-    pub fn to_string(&self) -> Result<String, ParserError> {
+    fn to_string(&self) -> Result<String, ParserError> {
         let mut wtr = WriterBuilder::new()
             .has_headers(false)
             .from_writer(Vec::new());

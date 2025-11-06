@@ -5,11 +5,11 @@ use serde::Deserialize;
 use std::io::Read;
 
 impl XmlWrapper {
-    pub fn from_string(s: &str) -> Result<Self, ParserError> {
+    pub(crate) fn from_string(s: &str) -> Result<Self, ParserError> {
         Ok(XmlWrapper(s.to_string()))
     }
 
-    pub fn parse_xml(&self) -> Result<serde_json::Value, ParserError> {
+    pub(crate) fn parse_xml(&self) -> Result<serde_json::Value, ParserError> {
         if self.0.is_empty() {
             return Ok(serde_json::Value::Null);
         }

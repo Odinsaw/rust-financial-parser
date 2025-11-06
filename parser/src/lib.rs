@@ -1,4 +1,5 @@
 #![warn(missing_docs)]
+#![deny(unreachable_pub)]
 
 pub(crate) mod camt053;
 pub(crate) mod csv;
