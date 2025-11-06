@@ -1,6 +1,50 @@
 #![warn(missing_docs)]
 #![deny(unreachable_pub)]
 
+//! # Financial Statement Format Converter
+//!
+//! This crate provides tools for **reading, writing, and converting** financial
+//! statement data between multiple formats, including **MT940**, **CAMT.053**, **XML**, and **CSV**.
+//!
+//! ## Overview
+//!
+//! The library offers a unified API for handling different statement formats,
+//! enabling conversion pipelines and consistent error handling.
+//!
+//! Supported conversions include:
+//!
+//! - MT940 ↔ CAMT.053
+//! - MT940 → XML
+//! - CAMT.053 → XML
+//!
+//! Each format is implemented in its own module and provides parsing and
+//! serialization through shared traits.
+//!
+//! ## Architecture
+//!
+//! The crate is organized around three main layers:
+//!
+//! - **Format modules** (`mt940`, `camt053`, `xml`, `csv`)
+//!   Each defines a format-specific struct implementing
+//!   [`FinancialDataRead`] and [`FinancialDataWrite`].
+//!
+//! - **Core traits** ([`traits`])
+//!   Define the generic read/write interfaces for all supported formats.
+//!
+//! - **Converter logic** ([`converter`])
+//!   Implements high-level conversion between formats, working directly
+//!   with input/output streams.
+//!
+//! Errors across all modules are represented by the unified [`ParserError`] type.
+//!
+//! ## Extending the crate
+//!
+//! To add support for a new format:
+//!
+//! 1. Create a new module implementing [`FinancialDataRead`] and [`FinancialDataWrite`].
+//! 2. Add conversions (`TryFrom` implementations) to or from existing formats.
+//! 3. Register the format in [`SupportedFormats`] and extend the converter logic.
+
 pub(crate) mod camt053;
 pub(crate) mod csv;
 pub(crate) mod mt940;

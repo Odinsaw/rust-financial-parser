@@ -1,5 +1,62 @@
 #![warn(missing_docs)]
 
+//! # Financial Statement Converter CLI
+//!
+//! A command-line utility for converting financial statement files
+//! between standard formats such as **MT940**, **CAMT.053**, **XML**, and **CSV**.
+//!
+//! ## Overview
+//!
+//! This tool acts as a thin wrapper around the [`parser`] library,
+//! providing a simple command-line interface for format conversion.
+//! It reads data from an input stream, converts it using the parser’s
+//! conversion engine, and writes the result to the output stream.
+//!
+//! Supported conversions include:
+//! - MT940 ↔ CAMT.053
+//! - MT940 → XML
+//! - CAMT.053 → XML
+//!
+//! ## Command-Line Usage
+//!
+//! ```bash
+//! financial-parser \
+//!   --in-format mt940 \
+//!   --out-format camt053 \
+//!   -i input.mt940 \
+//!   -o output.xml
+//! ```
+//!
+//! ### Options
+//!
+//! | Flag | Description |
+//! |------|-------------|
+//! | `-i, --input <FILE>` | Input file (use `-` or omit for stdin). |
+//! | `-o, --output <FILE>` | Output file (use `-` or omit for stdout). |
+//! | `--in-format <FORMAT>` | Input format. One of: `mt940`, `camt053`, `xml`, `csv`. |
+//! | `--out-format <FORMAT>` | Output format (defaults to input format). |
+//! | `-v, --verbose` | Enables detailed logging to stderr. |
+//!
+//! ## Behavior
+//!
+//! 1. Parses command-line arguments using [`clap`].
+//! 2. Opens input/output streams (stdin/stdout or files).
+//! 3. Performs format conversion via [`convert_streams`].
+//! 4. Handles and reports errors consistently via [`CliError`].
+//!
+//! ## Error Handling
+//!
+//! The CLI returns a [`CliError`] for:
+//! - Invalid or missing arguments
+//! - I/O errors (file not found, permission denied, etc.)
+//! - Format parsing or conversion failures
+//!
+//! ## Notes
+//!
+//! - If input and output formats are identical, data is copied directly.
+//! - The tool supports streaming I/O for large files.
+//! - Verbose mode (`-v`) prints progress messages to stderr.
+
 mod errors;
 
 use anyhow::{Context, Result};
