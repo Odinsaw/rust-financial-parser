@@ -2,7 +2,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use swift_mt_message::messages;
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
-pub struct Mt940 {
+pub(crate) struct Mt940 {
     pub basic_header: BasicHeaderBlock,
     pub application_header: String,  // depends on implementation
     pub user_header: Option<String>, // depends on implementation, may be skipped
@@ -11,7 +11,7 @@ pub struct Mt940 {
 }
 
 #[derive(Debug, Default, Clone, PartialEq)]
-pub struct BasicHeaderBlock {
+pub(crate) struct BasicHeaderBlock {
     pub application_identifier: String,
     pub service_identifier: String,
     pub lt_identifier: String,

@@ -12,22 +12,22 @@ fn main() -> Result<(), ParserError> {
 
     let input_file = PathBuf::from(manifest_dir.clone())
         .join("examples")
-        .join("sample.mt940");
+        .join("sample.camt053");
 
     let output_file = PathBuf::from(manifest_dir)
         .join("examples")
-        .join("output.camt053");
+        .join("output.xml");
 
     let input_stream = Box::new(File::open(input_file)?);
     let output_stream = Box::new(File::create(output_file)?);
 
     let _result = convert_streams(
         input_stream,
-        SupportedFormats::Mt940,
-        output_stream,
         SupportedFormats::Camt053,
+        output_stream,
+        SupportedFormats::Xml,
     )?;
 
-    println!("Conversion MT940 -> CAMT053 completed!");
+    println!("Conversion CAMT053 -> MT940 completed!");
     Ok(())
 }

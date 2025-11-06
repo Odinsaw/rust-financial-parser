@@ -1,13 +1,14 @@
 use anyhow::Result;
-use parser::{Camt053, FinancialDataRead, FinancialDataWrite, Mt940, ParserError};
+use parser::ParserError;
+use parser::SupportedFormats;
+use parser::converter::convert_streams::convert_streams;
 use std::env;
-use std::io::{BufWriter, Write};
+use std::fs::File;
 use std::path::PathBuf;
 
-use std::fs::File;
-
 fn main() -> Result<(), ParserError> {
-    let manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
+    let manifest_dir =
+        env::var("CARGO_MANIFEST_DIR").map_err(|e| ParserError::GeneralError(e.to_string()))?;
 
     let input_file = PathBuf::from(manifest_dir.clone())
         .join("examples")
@@ -17,17 +18,15 @@ fn main() -> Result<(), ParserError> {
         .join("examples")
         .join("output.mt940");
 
-    let camt053 = Camt053::from_read(File::open(input_file)?)?;
-    let mt940_vec: Result<Vec<Mt940>, ParserError> = From::from(&camt053);
-    let mt940_vec = mt940_vec.unwrap();
+    let input_stream = Box::new(File::open(input_file)?);
+    let output_stream = Box::new(File::create(output_file)?);
 
-    let mut writer = BufWriter::new(File::create(output_file)?);
-    for (i, mt940) in mt940_vec.into_iter().enumerate() {
-        if i > 0 {
-            writer.write_all(b"\n\n")?;
-        }
-        mt940.write_to(&mut writer)?;
-    }
+    let _result = convert_streams(
+        input_stream,
+        SupportedFormats::Camt053,
+        output_stream,
+        SupportedFormats::Mt940,
+    )?;
 
     println!("Conversion CAMT053 -> MT940 completed!");
     Ok(())

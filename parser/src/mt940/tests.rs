@@ -23,9 +23,9 @@ fn test_basic_header_constructor() {
     assert!(BasicHeaderBlock::from_string(&header_str_less).is_err());
 }
 
+use std::env;
 use std::fs::File;
 use std::path::PathBuf;
-use std::env;
 
 #[test]
 fn test_with_file() {

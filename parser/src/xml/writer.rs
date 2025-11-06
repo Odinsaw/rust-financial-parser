@@ -1,11 +1,11 @@
 use crate::FinancialDataWrite;
-use crate::XmlWrapper;
 use crate::ParserError;
+use crate::xml::format::XmlWrapper;
 use serde::Serialize;
 use std::io::Write;
 
 impl XmlWrapper {
-    pub fn to_string(&self) -> Result<String, ParserError> {
+    pub(crate) fn to_string(&self) -> Result<String, ParserError> {
         Ok(self.0.clone())
     }
 }

@@ -1,12 +1,99 @@
+#![warn(missing_docs)]
+
+//! # Financial Statement Converter CLI
+//!
+//! A command-line utility for converting financial statement files
+//! between standard formats such as **MT940**, **CAMT.053**, **XML**, and **CSV**.
+//!
+//! ## Overview
+//!
+//! This tool acts as a thin wrapper around the [`parser`] library,
+//! providing a simple command-line interface for format conversion.
+//! It reads data from an input stream, converts it using the parser’s
+//! conversion engine, and writes the result to the output stream.
+//!
+//! Supported conversions include:
+//! - MT940 ↔ CAMT.053
+//! - MT940 → XML
+//! - CAMT.053 → XML
+//!
+//! ## Command-Line Usage
+//!
+//! ```bash
+//! financial-parser \
+//!   --in-format mt940 \
+//!   --out-format camt053 \
+//!   -i input.mt940 \
+//!   -o output.xml
+//! ```
+//!
+//! ### Options
+//!
+//! | Flag | Description |
+//! |------|-------------|
+//! | `-i, --input <FILE>` | Input file (use `-` or omit for stdin). |
+//! | `-o, --output <FILE>` | Output file (use `-` or omit for stdout). |
+//! | `--in-format <FORMAT>` | Input format. One of: `mt940`, `camt053`, `xml`, `csv`. |
+//! | `--out-format <FORMAT>` | Output format (defaults to input format). |
+//! | `-v, --verbose` | Enables detailed logging to stderr. |
+//!
+//! ## Behavior
+//!
+//! 1. Parses command-line arguments using [`clap`].
+//! 2. Opens input/output streams (stdin/stdout or files).
+//! 3. Performs format conversion via [`convert_streams`].
+//! 4. Handles and reports errors consistently via [`CliError`].
+//!
+//! ## Error Handling
+//!
+//! The CLI returns a [`CliError`] for:
+//! - Invalid or missing arguments
+//! - I/O errors (file not found, permission denied, etc.)
+//! - Format parsing or conversion failures
+//!
+//! ## Notes
+//!
+//! - If input and output formats are identical, data is copied directly.
+//! - The tool supports streaming I/O for large files.
+//! - Verbose mode (`-v`) prints progress messages to stderr.
+
+mod errors;
+
 use anyhow::{Context, Result};
 use clap::{Arg, ArgAction, Command};
-use parser::{
-    Camt053, FinancialDataRead, FinancialDataWrite, Mt940, ParserError, SupportedFormats,
-};
+use errors::CliError;
+use parser::SupportedFormats;
+use parser::converter::convert_streams::convert_streams;
 use std::fs::File;
-use std::io::{self, Write};
+use std::io;
 
-fn main() -> Result<()> {
+/// Entry point for the CLI application.
+///
+/// Parses command-line arguments, sets up input and output streams, and
+/// performs conversion between supported financial formats (e.g., MT940, CAMT.053, CSV, XML).
+///
+/// # Command-line arguments
+///
+/// - `-i, --input <FILE>`: Input file (use `-` or omit for stdin). Default: `-`.
+/// - `-o, --output <FILE>`: Output file (use `-` or omit for stdout). Default: `-`.
+/// - `--in-format <FORMAT>`: Input format (required). Options: `"mt940"`, `"camt053"`, `"xml"`, `"csv"`.
+/// - `--out-format <FORMAT>`: Output format. Defaults to the same as input format.
+/// - `-v, --verbose`: Enable verbose output.
+///
+/// # Behavior
+///
+/// - Reads the input stream and parses it according to the input format.
+/// - Converts the data to the requested output format.
+/// - Writes the result to the output stream.
+/// - If verbose mode is enabled, prints detailed information to stderr.
+///
+/// # Errors
+///
+/// Returns a [`CliError`] in the following cases:
+/// - Invalid or missing command-line arguments (`ArgsError`).
+/// - Input/output errors (`Io`).
+/// - Parsing or conversion failures (`ParserError` or `ConversionError`).
+fn main() -> Result<(), CliError> {
     let matches = Command::new("financial-parcer")
         .version("1.0")
         .about("CLI utility for converting between MT940 and CAMT053 formats")
@@ -50,18 +137,26 @@ fn main() -> Result<()> {
         )
         .get_matches();
 
-    let input_path = matches.get_one::<String>("input").unwrap();
-    let output_path = matches.get_one::<String>("output").unwrap();
-    let in_format: SupportedFormats = matches
-        .get_one::<String>("in-format")
-        .unwrap()
-        .parse()
-        .unwrap();
+    let input_path = matches
+        .get_one::<String>("input")
+        .ok_or_else(|| CliError::ArgsError("Failed to parse 'input' argument".to_string()))?;
+    let output_path = matches
+        .get_one::<String>("output")
+        .ok_or_else(|| CliError::ArgsError("Failed to parse 'output' argument".to_string()))?;
 
-    let out_format: SupportedFormats = matches
+    let in_format_str = matches
+        .get_one::<String>("in-format")
+        .ok_or_else(|| CliError::ArgsError("Missing 'in-format' argument".to_string()))?;
+    let in_format: SupportedFormats = in_format_str
+        .parse()
+        .map_err(|e| CliError::ArgsError(format!("Invalid format: {}", e)))?;
+
+    let out_format_str = matches
         .get_one::<String>("out-format")
-        .map(|s| s.parse().unwrap())
-        .unwrap_or(in_format.clone());
+        .unwrap_or(&in_format_str);
+    let out_format: SupportedFormats = out_format_str
+        .parse()
+        .map_err(|e| CliError::ArgsError(format!("Invalid format: {}", e)))?;
     let verbose = matches.get_flag("verbose");
 
     if verbose {
@@ -71,9 +166,11 @@ fn main() -> Result<()> {
         eprintln!("Writing to: {}", output_path);
     }
 
+    let input_stream = create_reader(input_path)?;
+    let output_stream = create_writer(output_path)?;
     // Process conversion
-    process_conversion(input_path, output_path, &in_format, &out_format, verbose)
-        .context("Conversion failed")?;
+    convert_streams(input_stream, in_format, output_stream, out_format)
+        .map_err(|e| CliError::ConversionError(e.to_string()))?;
 
     if verbose {
         eprintln!("Conversion completed successfully");
@@ -82,99 +179,34 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn process_conversion(
-    input_path: &str,
-    output_path: &str,
-    in_format: &SupportedFormats,
-    out_format: &SupportedFormats,
-    verbose: bool,
-) -> Result<(), ParserError> {
-    // If formats are the same, just copy the data
-    if in_format == out_format {
-        if verbose {
-            eprintln!("Input and output formats are the same, copying data as-is");
-        }
-        copy_input_to_output(input_path, output_path)?;
-        return Ok(());
-    }
-
-    match (in_format, out_format) {
-        (SupportedFormats::Mt940, SupportedFormats::Camt053) => {
-            if verbose {
-                eprintln!("Converting MT940 to CAMT053");
-            }
-            convert_mt940_to_camt053(input_path, output_path)
-        }
-        (SupportedFormats::Camt053, SupportedFormats::Mt940) => {
-            if verbose {
-                eprintln!("Converting CAMT053 to MT940");
-            }
-            convert_camt053_to_mt940(input_path, output_path)
-        }
-        _ => unreachable!(),
-    }
-}
-
-fn copy_input_to_output(input_path: &str, output_path: &str) -> Result<(), ParserError> {
-    let input_reader = create_reader(input_path)?;
-    let output_writer = create_writer(output_path)?;
-
-    let mut input_buf = std::io::BufReader::new(input_reader);
-    let mut output_buf = std::io::BufWriter::new(output_writer);
-
-    std::io::copy(&mut input_buf, &mut output_buf)?;
-    output_buf.flush()?;
-
-    Ok(())
-}
-
-fn convert_mt940_to_camt053(input_path: &str, output_path: &str) -> Result<(), ParserError> {
-    let input_reader = create_reader(input_path)?;
-    let output_writer = create_writer(output_path)?;
-
-    let mt940 = Mt940::from_read(input_reader)?;
-    let camt053_result: Result<Camt053, ParserError> = From::from(&mt940);
-    let camt053 = camt053_result?;
-
-    camt053.write_to(output_writer)?;
-    Ok(())
-}
-
-fn convert_camt053_to_mt940(input_path: &str, output_path: &str) -> Result<(), ParserError> {
-    let input_reader = create_reader(input_path)?;
-    let output_writer = create_writer(output_path)?;
-
-    let camt053 = Camt053::from_read(input_reader)?;
-    let mt940_vec_result: Result<Vec<Mt940>, ParserError> = From::from(&camt053);
-    let mt940_vec = mt940_vec_result?;
-
-    let mut buffered_writer = std::io::BufWriter::new(output_writer);
-
-    for (i, mt940) in mt940_vec.into_iter().enumerate() {
-        if i > 0 {
-            buffered_writer.write_all(b"\n\n")?;
-        }
-        mt940.write_to(&mut buffered_writer)?;
-    }
-
-    buffered_writer.flush()?;
-    Ok(())
-}
-
-fn create_reader(input_path: &str) -> Result<Box<dyn std::io::Read>, ParserError> {
+/// Creates a boxed reader from the specified input path.
+///
+/// If the input path is `"-"`, returns a reader for stdin; otherwise, opens the file.
+///
+/// # Errors
+///
+/// Returns a [`CliError::Io`] if the file cannot be opened.
+fn create_reader(input_path: &str) -> Result<Box<dyn std::io::Read>, CliError> {
     if input_path == "-" {
         Ok(Box::new(io::stdin()))
     } else {
-        let file = File::open(input_path).map_err(|e| ParserError::Io(e.to_string()))?;
+        let file = File::open(input_path).map_err(|e| CliError::Io(e))?;
         Ok(Box::new(file))
     }
 }
 
-fn create_writer(output_path: &str) -> Result<Box<dyn std::io::Write>, ParserError> {
+/// Creates a boxed writer for the specified output path.
+///
+/// If the output path is `"-"`, returns a writer for stdout; otherwise, creates/truncates the file.
+///
+/// # Errors
+///
+/// Returns a [`CliError::Io`] if the file cannot be created.
+fn create_writer(output_path: &str) -> Result<Box<dyn std::io::Write>, CliError> {
     if output_path == "-" {
         Ok(Box::new(io::stdout()))
     } else {
-        let file = File::create(output_path).map_err(|e| ParserError::Io(e.to_string()))?;
+        let file = File::create(output_path).map_err(|e| CliError::Io(e))?;
         Ok(Box::new(file))
     }
 }

@@ -16,7 +16,7 @@ fn main() -> Result<(), ParserError> {
 
     let output_file = PathBuf::from(manifest_dir)
         .join("examples")
-        .join("output.camt053");
+        .join("output.xml");
 
     let input_stream = Box::new(File::open(input_file)?);
     let output_stream = Box::new(File::create(output_file)?);
@@ -25,9 +25,9 @@ fn main() -> Result<(), ParserError> {
         input_stream,
         SupportedFormats::Mt940,
         output_stream,
-        SupportedFormats::Camt053,
+        SupportedFormats::Xml,
     )?;
 
-    println!("Conversion MT940 -> CAMT053 completed!");
+    println!("Conversion CAMT053 -> MT940 completed!");
     Ok(())
 }

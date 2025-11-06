@@ -5,7 +5,7 @@ use crate::ParserError;
 use quick_xml::se;
 
 impl Camt053 {
-    pub fn to_string(&self) -> Result<String, ParserError> {
+    fn to_string(&self) -> Result<String, ParserError> {
         Ok(se::to_string(self).map_err(|e| ParserError::Camt053(e.to_string()))?)
     }
 }
